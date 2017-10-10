@@ -5,14 +5,14 @@ using System.Text.RegularExpressions;
 
 namespace SepcReptile
 {
-    class RegexpOperation
+    internal class RegexpOperation
     {
         public static string[] MultiRegex(string searcher, string reg)
         {
-            Regex r = new Regex(reg);
-            MatchCollection mc = r.Matches(searcher);
-            string[] vals = new string[mc.Count];
-            for (int i = 0; i < vals.Length; ++i)
+            var r = new Regex(reg);
+            var mc = r.Matches(searcher);
+            var vals = new string[mc.Count];
+            for (var i = 0; i < vals.Length; ++i)
             {
                 vals[i] = mc[i].Value;
             }
@@ -20,22 +20,22 @@ namespace SepcReptile
         }
         public static string SingleRegex(string searcher, string reg)
         {
-            Regex r = new Regex(reg);
-            Match m = r.Match(searcher);
+            var r = new Regex(reg);
+            var m = r.Match(searcher);
             return m.Value;
         }
         public static string GroupSingleRegex(string searcher, string reg)
         {
-            Regex r = new Regex(reg);
-            Match m = r.Match(searcher);
+            var r = new Regex(reg);
+            var m = r.Match(searcher);
             return m.Groups[1].Value;
         }
         public static string[] GroupMultiRegex(string searcher, string reg)
         {
-            Regex r = new Regex(reg);
-            MatchCollection mc = r.Matches(searcher);
-            string[] vals = new string[mc.Count];
-            for (int i = 0; i < vals.Length; ++i)
+            var r = new Regex(reg);
+            var mc = r.Matches(searcher);
+            var vals = new string[mc.Count];
+            for (var i = 0; i < vals.Length; ++i)
             {
                 var x = mc[i].Groups;
                 vals[i] = x[1].Value;
@@ -44,16 +44,16 @@ namespace SepcReptile
         }
         public static DataTable Create(string source, string pattern, bool ingroup = false, int positions = 0)
         {
-            DataTable dt = new DataTable();
-            Regex rg = new Regex(pattern);
-            MatchCollection mc = rg.Matches(source);
+            var dt = new DataTable();
+            var rg = new Regex(pattern);
+            var mc = rg.Matches(source);
             if(ingroup)
             {
                 dt.Columns.AddRange(new DataColumn[positions]);
-                for(int i=0;i<mc.Count;++i)
+                for(var i=0;i<mc.Count;++i)
                 {
-                    DataRow dr = dt.NewRow();
-                    for(int j=0;j<positions;++j)
+                    var dr = dt.NewRow();
+                    for(var j=0;j<positions;++j)
                     {
                         dr[j] = mc[i].Groups[j + 1].Value;
                     }
@@ -65,13 +65,13 @@ namespace SepcReptile
 
         public static bool RegexTest(string searcher,string reg)
         {
-            Regex r = new Regex(reg);
+            var r = new Regex(reg);
             return r.IsMatch(searcher);
         }
         public static string UnicodeDeserialize(string str)
         {
-            string[] bytes = str.Split(new string[] { "\\u" }, StringSplitOptions.RemoveEmptyEntries);
-            string result = new string(bytes.Select(x => (char)Convert.ToInt16(x, 16)).ToArray());
+            var bytes = str.Split(new[] { "\\u" }, StringSplitOptions.RemoveEmptyEntries);
+            var result = new string(bytes.Select(x => (char)Convert.ToInt16(x, 16)).ToArray());
             return result;
         }
     }

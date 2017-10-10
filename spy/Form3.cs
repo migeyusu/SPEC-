@@ -7,15 +7,16 @@ namespace SepcReptile
 {
     public partial class Form3 : Form
     {
-        DataTable seriesTable, nameTable;
-        public SqlWorkUnit database;
+        private readonly DataTable _seriesTable;
+        private DataTable _nameTable;
+        public SqlWorkUnit Database;
         public Form3()
         {
             InitializeComponent();
             listBox1.Sorted = true;
-            database = new SqlWorkUnit(Application.StartupPath + "\\database\\secret.mdf");
-            seriesTable = database.ExuSQLDataTable("select * from series");
-            comboboxReflash();
+            Database = new SqlWorkUnit(Application.StartupPath + "\\database\\secret.mdf");
+            _seriesTable = Database.ExuSqlDataTable("select * from series");
+            ComboboxReflash();
             panel1.Enabled = false;
         }
 
@@ -23,21 +24,22 @@ namespace SepcReptile
         {
 
         }
-        void comboboxReflash()
+
+        private void ComboboxReflash()
         {
             comboBox1.Items.Clear();
-            for (int i = 0; i < seriesTable.Rows.Count; ++i)
+            for (var i = 0; i < _seriesTable.Rows.Count; ++i)
             {
-                comboBox1.Items.Add(seriesTable.Rows[i]["series"].ToString());
+                comboBox1.Items.Add(_seriesTable.Rows[i]["series"].ToString());
             }
         }
 
-        void listboxReflash()
+        private void ListboxReflash()
         {
             listBox1.Items.Clear();
-            for (int i = 0; i < nameTable.Rows.Count; ++i)
+            for (var i = 0; i < _nameTable.Rows.Count; ++i)
             {
-                listBox1.Items.Add(nameTable.Rows[i]["name"].ToString());
+                listBox1.Items.Add(_nameTable.Rows[i]["name"].ToString());
             }
       
         }
@@ -45,9 +47,9 @@ namespace SepcReptile
         {
             if (comboBox1.SelectedIndex != -1)
             {
-                nameTable = database.ExuSQLDataTable("select * from names where series='" +
+                _nameTable = Database.ExuSqlDataTable("select * from names where series='" +
                     comboBox1.SelectedItem.ToString()+"'");
-                listboxReflash();
+                ListboxReflash();
             }
         }
         /// <summary>
@@ -60,12 +62,12 @@ namespace SepcReptile
             if (listBox1.SelectedItem != null)
             {
                 panel1.Enabled = true;
-                textBox1.Text = nameTable.Rows[listBox1.SelectedIndex]["url"].ToString();
-                textBox2.Text = nameTable.Rows[listBox1.SelectedIndex]["downloadurl"].ToString();
-                textBox3.Text = nameTable.Rows[listBox1.SelectedIndex]["name"].ToString();
-                textBox4.Text = nameTable.Rows[listBox1.SelectedIndex]["series"].ToString();
-                picname = nameTable.Rows[listBox1.SelectedIndex]["picloc"].ToString();
-                pictureBox1.ImageLocation = Application.StartupPath + "\\Pics\\" + picname;
+                textBox1.Text = _nameTable.Rows[listBox1.SelectedIndex]["url"].ToString();
+                textBox2.Text = _nameTable.Rows[listBox1.SelectedIndex]["downloadurl"].ToString();
+                textBox3.Text = _nameTable.Rows[listBox1.SelectedIndex]["name"].ToString();
+                textBox4.Text = _nameTable.Rows[listBox1.SelectedIndex]["series"].ToString();
+                _picname = _nameTable.Rows[listBox1.SelectedIndex]["picloc"].ToString();
+                pictureBox1.ImageLocation = Application.StartupPath + "\\Pics\\" + _picname;
             }
             else
             {
@@ -75,20 +77,21 @@ namespace SepcReptile
         //更改
         private void button3_Click(object sender, EventArgs e)
         {
-            nameTable.Rows[listBox1.SelectedIndex]["url"] = textBox1.Text;
-            nameTable.Rows[listBox1.SelectedIndex]["downloadurl"] = textBox2.Text;
-            nameTable.Rows[listBox1.SelectedIndex]["name"] = textBox3.Text;
-            nameTable.Rows[listBox1.SelectedIndex]["series"] = textBox4.Text;
-            nameTable.Rows[listBox1.SelectedIndex]["picloc"] = picname;
-            database.Update(nameTable);
+            _nameTable.Rows[listBox1.SelectedIndex]["url"] = textBox1.Text;
+            _nameTable.Rows[listBox1.SelectedIndex]["downloadurl"] = textBox2.Text;
+            _nameTable.Rows[listBox1.SelectedIndex]["name"] = textBox3.Text;
+            _nameTable.Rows[listBox1.SelectedIndex]["series"] = textBox4.Text;
+            _nameTable.Rows[listBox1.SelectedIndex]["picloc"] = _picname;
+            Database.Update(_nameTable);
         }
-        string picname;
+
+        private string _picname;
         private void button2_Click(object sender, EventArgs e)
         {
-            OpenFileDialog ofd=new OpenFileDialog();
+            var ofd=new OpenFileDialog();
             if(ofd.ShowDialog()==DialogResult.OK)
             {
-                picname = ofd.SafeFileName;
+                _picname = ofd.SafeFileName;
                 pictureBox1.ImageLocation = ofd.FileName;
                 if(!File.Exists(Application.StartupPath + "\\Pics\\" + ofd.SafeFileName))
                 {
@@ -99,36 +102,36 @@ namespace SepcReptile
         //删除
         private void button4_Click(object sender, EventArgs e)
         {
-            nameTable.Rows.RemoveAt(listBox1.SelectedIndex);
-            listboxReflash();
+            _nameTable.Rows.RemoveAt(listBox1.SelectedIndex);
+            ListboxReflash();
         }
         //保存
         private void button1_Click(object sender, EventArgs e)
         {
-            DataRow dr = nameTable.NewRow();
+            var dr = _nameTable.NewRow();
             dr["url"] = textBox1.Text;
             dr["downloadurl"] = textBox2.Text;
             dr["name"] = textBox3.Text;
-            dr["picloc"] = picname;
+            dr["picloc"] = _picname;
             dr["series"] = textBox4.Text;
-            nameTable.Rows.Add(dr);
-            database.Update(nameTable);
-            listboxReflash();
-            bool append = true;
-            for(int i=0;i<seriesTable.Rows.Count;++i)
+            _nameTable.Rows.Add(dr);
+            Database.Update(_nameTable);
+            ListboxReflash();
+            var append = true;
+            for(var i=0;i<_seriesTable.Rows.Count;++i)
             {
-                if(seriesTable.Rows[i]["series"].ToString()==textBox4.Text)
+                if(_seriesTable.Rows[i]["series"].ToString()==textBox4.Text)
                 {
                     append = false;
                 }
             }
             if(append)
             {
-                DataRow drs = seriesTable.NewRow();
+                var drs = _seriesTable.NewRow();
                 drs["series"] = textBox4.Text;
-                seriesTable.Rows.Add(drs);
-                database.Update(seriesTable);
-                comboboxReflash();
+                _seriesTable.Rows.Add(drs);
+                Database.Update(_seriesTable);
+                ComboboxReflash();
             } 
         }
     }

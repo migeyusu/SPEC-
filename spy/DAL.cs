@@ -7,76 +7,68 @@ using System.Linq;
 
 namespace SepcReptile
 {
-   public  struct pair
+   public  struct Pair
     {
-        public string key;
-        public string value;
+        public string Key;
+        public string Value;
     }
     //Data Source=.\SQLEXPRESS;AttachDbFilename=C:\工程\TMS\TMS\bin\Release\DataBase\teachmanage.mdf;Integrated Security=True;User ID=admin;Connect Timeout=30;User Instance=True
     public class SqlWorkUnit
     {
-        SqlConnection cn;
-        Dictionary<DataTable, SqlDataAdapter> UpdateMapper;
-        TextLog errorLog;
+        private readonly SqlConnection _cn;
+        private readonly Dictionary<DataTable, SqlDataAdapter> _updateMapper;
+        private readonly TextLog _errorLog;
 
         public SqlWorkUnit(string datapath)
         {
-            errorLog = new TextLog(System.AppDomain.CurrentDomain.BaseDirectory + "mssql.txt");
-            string ConnectParam = @"Data Source=.\SQLEXPRESS;AttachDbFilename=" + datapath + ";Integrated Security=True;User Instance=True";//(LocalDB)\MSSQLLocalDB
-            cn = new SqlConnection(ConnectParam);
-            UpdateMapper = new Dictionary<DataTable, SqlDataAdapter>();
+            _errorLog = new TextLog(System.AppDomain.CurrentDomain.BaseDirectory + "mssql.txt");
+            var connectParam = @"Data Source=.\SQLEXPRESS;AttachDbFilename=" + datapath + ";Integrated Security=True;User Instance=True";//(LocalDB)\MSSQLLocalDB
+            _cn = new SqlConnection(connectParam);
+            _updateMapper = new Dictionary<DataTable, SqlDataAdapter>();
         }
 
         public SqlWorkUnit(string datapath, string sqlmodel)
         {
-            errorLog = new TextLog(System.AppDomain.CurrentDomain.BaseDirectory + "mssql.txt");
-            string ConnectParam = @"Data Source=" + sqlmodel + ";AttachDbFilename=" + datapath + ";Integrated Security=True;User Instance=True";//(LocalDB)\MSSQLLocalDB
-            cn = new SqlConnection(ConnectParam);
-            UpdateMapper = new Dictionary<DataTable, SqlDataAdapter>();
+            _errorLog = new TextLog(System.AppDomain.CurrentDomain.BaseDirectory + "mssql.txt");
+            var connectParam = @"Data Source=" + sqlmodel + ";AttachDbFilename=" + datapath + ";Integrated Security=True;User Instance=True";//(LocalDB)\MSSQLLocalDB
+            _cn = new SqlConnection(connectParam);
+            _updateMapper = new Dictionary<DataTable, SqlDataAdapter>();
         }
 
-        public DataTable ExuSQLDataTable(string sql, bool persisted = true)
+        public DataTable ExuSqlDataTable(string sql, bool persisted = true)
         {
-            cn.Open();
-            DataTable dt = new DataTable();  
-            SqlDataAdapter sda = new SqlDataAdapter(sql, cn);
+            _cn.Open();
+            var dt = new DataTable();  
+            var sda = new SqlDataAdapter(sql, _cn);
             sda.Fill(dt);
             if (persisted)
             {
-                UpdateMapper.Add(dt, sda);
+                _updateMapper.Add(dt, sda);
             }
-            cn.Close();
+            _cn.Close();
             return dt;
         }
 
-        public bool ExuSQL(string sql)
+        public bool ExuSql(string sql)
         {
-            try
-            {
-                cn.Open();
-                SqlCommand cmd = new SqlCommand(sql, cn);
-                cmd.ExecuteNonQuery();
-                cn.Close();
-                return true;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            _cn.Open();
+            var cmd = new SqlCommand(sql, _cn);
+            cmd.ExecuteNonQuery();
+            _cn.Close();
+            return true;
         }
 
         public void Update(DataTable dt)
         {
-            if (UpdateMapper.ContainsKey(dt))
-            {
-                SqlCommandBuilder scb = new SqlCommandBuilder(UpdateMapper[dt]);
-                UpdateMapper[dt].Update(dt);
+            if (_updateMapper.ContainsKey(dt)) {
+                new SqlCommandBuilder(_updateMapper[dt]);
+                _updateMapper[dt].Update(dt);
             }
-        }
+        }   
 
         public void Save(DataTable dt,string tablename,Dictionary<string,string> mapping)
         {
-            using (SqlBulkCopy copy = new SqlBulkCopy(cn.ConnectionString, SqlBulkCopyOptions.KeepIdentity))
+            using (var copy = new SqlBulkCopy(_cn.ConnectionString, SqlBulkCopyOptions.KeepIdentity))
             {
                 copy.DestinationTableName = tablename;
                 foreach (var x in mapping.Keys)
@@ -90,7 +82,7 @@ namespace SepcReptile
 
         public void Save(DataTable dt, string tablename, List<string> mapping)
         {
-            using (SqlBulkCopy copy = new SqlBulkCopy(cn.ConnectionString, SqlBulkCopyOptions.KeepIdentity))
+            using (var copy = new SqlBulkCopy(_cn.ConnectionString, SqlBulkCopyOptions.KeepIdentity))
             {
                 copy.DestinationTableName = tablename;
                 foreach (var x in mapping)
@@ -104,29 +96,24 @@ namespace SepcReptile
                 }
                 catch(Exception ex)
                 {
-                    StreamWriter sw = new StreamWriter(Guid.NewGuid() + ".txt");
+                    var sw = new StreamWriter(Guid.NewGuid() + ".txt");
                     foreach(DataRow dr in dt.Rows)
                     {
                         sw.WriteLine(string.Join(",", dr.ItemArray));
                     }
                     sw.Close();
-                    errorLog.Write(ex.ToString());
+                    _errorLog.Write(ex.ToString());
                 }
             }
         }
 
         public void Clear()
         {
-            List<DataTable> list = UpdateMapper.Keys.ToList();
-            foreach(DataTable dt in list)
+            var list = _updateMapper.Keys.ToList();
+            foreach(var dt in list)
             {
-                UpdateMapper[dt].Dispose();
+                _updateMapper[dt].Dispose();
             }
-        }
-
-
-        ~SqlWorkUnit()
-        {
         }
     }
         //public bool DeleRow(DataTable dt, int index)

@@ -5,7 +5,7 @@ namespace SepcReptile
 {
     public class SpecReptile : Reptile
     {
-        object datarowLocker = new object();
+        private readonly object _datarowLocker = new object();
         public SpecReptile(string config)
         {
             ConfigIni(config);
@@ -26,7 +26,7 @@ namespace SepcReptile
             CommonStructureTable.Columns.Add("os");
             CommonStructureTable.Columns.Add("compiler");         
             CommonStructureTable.Columns.Add("osstate");
-            if (PreWorkFlow.SN == 1 || PreWorkFlow.SN ==2)
+            if (PreWorkFlow.Sn == 1 || PreWorkFlow.Sn ==2)
             {
                 #region int & intrates
                 CommonStructureTable.Columns.Add("perlbenchbases");
@@ -79,7 +79,7 @@ namespace SepcReptile
                 CommonStructureTable.Columns.Add("xalancbmkpeakr");
                 #endregion
             }
-            else if (PreWorkFlow.SN == 3 || PreWorkFlow.SN == 4)
+            else if (PreWorkFlow.Sn == 3 || PreWorkFlow.Sn == 4)
             {
                 #region fp & fprates
                 CommonStructureTable.Columns.Add("bwavesbases");
@@ -173,12 +173,12 @@ namespace SepcReptile
 
         protected override DataRow[] Deal(string htmlPage)
         {
-            DataRow dr=null;
-            lock (datarowLocker)
+            DataRow dr;
+            lock (_datarowLocker)
             {
                 dr = CommonStructureTable.NewRow();
             }
-            switch (PreWorkFlow.SN)
+            switch (PreWorkFlow.Sn)
             {
                 case 1://int
                     HeadDetail(dr, htmlPage);
@@ -190,33 +190,31 @@ namespace SepcReptile
                     break;
                 case 3://fp
                     HeadDetail(dr, htmlPage);
-                    FPDetail(dr, htmlPage);
+                    FpDetail(dr, htmlPage);
                     break;
                 case 4://fprates
                     HeadDetail(dr, htmlPage);
-                    FPDetail(dr, htmlPage);
-                    break;
-                default:
+                    FpDetail(dr, htmlPage);
                     break;
             }
-            return new DataRow[] { dr };
+            return new[] { dr };
         }
 
-        void HeadDetail(DataRow dr, string page)
+        private void HeadDetail(DataRow dr, string page)
         {
-            Regex r0 = new Regex(@"<span class=""value"">(.*?)</span>");
-            Regex r1 = new Regex(@"test_date_val"">(.*?)</td>");
-            Regex r2 = new Regex(@"CPU Name</a>:</th>\n\s+?<td>(.*?)</td>");
-            Regex r3 = new Regex(@"orderable</a>:</th>\n\s*?<td>(.*?)</td>");
-            Regex r4 = new Regex(@"CPU MHz</a>:</th>\n\s+?<td>(.*?)</td>");
-            Regex r5 = new Regex(@"Memory</a>:</th>\n\s+?<td>([\s\S]*?)</td>");
-            Regex r6 = new Regex(@"Characteristics</a>:</th>\n\s+?<td>(.*?)</td>");
-            Regex r7 = new Regex(@"Operating System</a>:</th>[\s\S]*?<td>([\s\S]*?)</td>");
-            Regex r8 = new Regex(@"System State</a>:</th>\n\s+?<td>(.*?)</td>");
-            Regex r9 = new Regex(@"Compiler</a>:</th>\n\s+?<td>([\s\S]*?)</td>");
-            MatchCollection mc = r0.Matches(page);
-            float test=0;
-            int test1=0;
+            var r0 = new Regex(@"<span class=""value"">(.*?)</span>");
+            var r1 = new Regex(@"test_date_val"">(.*?)</td>");
+            var r2 = new Regex(@"CPU Name</a>:</th>\n\s+?<td>(.*?)</td>");
+            var r3 = new Regex(@"orderable</a>:</th>\n\s*?<td>(.*?)</td>");
+            var r4 = new Regex(@"CPU MHz</a>:</th>\n\s+?<td>(.*?)</td>");
+            var r5 = new Regex(@"Memory</a>:</th>\n\s+?<td>([\s\S]*?)</td>");
+            var r6 = new Regex(@"Characteristics</a>:</th>\n\s+?<td>(.*?)</td>");
+            var r7 = new Regex(@"Operating System</a>:</th>[\s\S]*?<td>([\s\S]*?)</td>");
+            var r8 = new Regex(@"System State</a>:</th>\n\s+?<td>(.*?)</td>");
+            var r9 = new Regex(@"Compiler</a>:</th>\n\s+?<td>([\s\S]*?)</td>");
+            var mc = r0.Matches(page);
+            float test;
+            int test1;
             dr["peak"] = float.TryParse(mc[0].Groups[1].Value,out test) ? test : 0;
             dr["base"] = float.TryParse(mc[1].Groups[1].Value, out test) ? test : 0;
             dr["testdate"] = r1.Match(page).Groups[1].Value;
@@ -230,14 +228,15 @@ namespace SepcReptile
             dr["compiler"] = r9.Match(page).Groups[1].Value;
         }
 
-        Regex basesec = new Regex(@"basecol secs selected.*?selected"">(.*?)</span>");
-        Regex baserat = new Regex(@"basecol ratio selected.*?selected"">(.*?)</span>");
-        Regex peaksec = new Regex(@"peakcol secs selected.*?selected"">(.*?)</span>");
-        Regex pealrat = new Regex(@"peakcol ratio selected.*?selected"">(.*?)</span>");
-        void ItemMatch(DataRow dr, string name, Regex r,string page)
+        private readonly Regex _basesec = new Regex(@"basecol secs selected.*?selected"">(.*?)</span>");
+        private readonly Regex _baserat = new Regex(@"basecol ratio selected.*?selected"">(.*?)</span>");
+        private readonly Regex _peaksec = new Regex(@"peakcol secs selected.*?selected"">(.*?)</span>");
+        private readonly Regex _pealrat = new Regex(@"peakcol ratio selected.*?selected"">(.*?)</span>");
+
+        private void ItemMatch(DataRow dr, string name, Regex r,string page)
         {
             float test = 0;
-            Match para = r.Match(page);
+            var para = r.Match(page);
             if (para == null)
             {
                 dr[name + "bases"] = 0;
@@ -246,7 +245,7 @@ namespace SepcReptile
                 dr[name + "peakr"] = 0;
                 return;
             }
-            Match select = basesec.Match(para.Value);
+            var select = _basesec.Match(para.Value);
             if (select == null)
             {
                 dr[name+"bases"] = 0;
@@ -255,7 +254,7 @@ namespace SepcReptile
             {
                 dr[name+"bases"] = float.TryParse(select.Groups[1].Value, out test) ? test : 0;
             }
-            select = baserat.Match(para.Value);
+            select = _baserat.Match(para.Value);
             if (select == null)
             {
                 dr[name + "baser"] = 0;
@@ -264,7 +263,7 @@ namespace SepcReptile
             {
                 dr[name + "baser"] = float.TryParse(select.Groups[1].Value, out test) ? test : 0;
             }
-            select = peaksec.Match(para.Value);
+            select = _peaksec.Match(para.Value);
             if (select == null)
             {
                 dr[name + "peaks"] = 0;
@@ -273,7 +272,7 @@ namespace SepcReptile
             {
                 dr[name + "peaks"] = float.TryParse(select.Groups[1].Value, out test) ? test : 0;
             }
-            select = pealrat.Match(para.Value);
+            select = _pealrat.Match(para.Value);
             if (select == null)
             {
                 dr[name + "peakr"] = 0;
@@ -284,20 +283,20 @@ namespace SepcReptile
             }
         }
 
-        void IntDetail(DataRow dr, string page)
+        private void IntDetail(DataRow dr, string page)
         {
-            Regex r0 = new Regex(@"400.perlbench</a></td>[\s\S]*?</tr>");
-            Regex r1 = new Regex(@"401.bzip2</a></td>[\s\S]*?</tr>");
-            Regex r2 = new Regex(@"403.gcc</a></td>[\s\S]*?</tr>");
-            Regex r3 = new Regex(@"429.mcf</a></td>[\s\S]*?</tr>");
-            Regex r4 = new Regex(@"445.gobmk</a></td>[\s\S]*?</tr>");
-            Regex r5 = new Regex(@"456.hmmer</a></td>[\s\S]*?</tr>");
-            Regex r6 = new Regex(@"458.sjeng</a></td>[\s\S]*?</tr>");
-            Regex r7 = new Regex(@"462.libquantum</a></td>[\s\S]*?</tr>");
-            Regex r8 = new Regex(@"464.h264ref</a></td>[\s\S]*?</tr>");
-            Regex r9 = new Regex(@"471.omnetpp</a></td>[\s\S]*?</tr>");
-            Regex r10 = new Regex(@"473.astar</a></td>[\s\S]*?</tr>");
-            Regex r11 = new Regex(@"483.xalancbmk</a></td>[\s\S]*?</tr>");
+            var r0 = new Regex(@"400.perlbench</a></td>[\s\S]*?</tr>");
+            var r1 = new Regex(@"401.bzip2</a></td>[\s\S]*?</tr>");
+            var r2 = new Regex(@"403.gcc</a></td>[\s\S]*?</tr>");
+            var r3 = new Regex(@"429.mcf</a></td>[\s\S]*?</tr>");
+            var r4 = new Regex(@"445.gobmk</a></td>[\s\S]*?</tr>");
+            var r5 = new Regex(@"456.hmmer</a></td>[\s\S]*?</tr>");
+            var r6 = new Regex(@"458.sjeng</a></td>[\s\S]*?</tr>");
+            var r7 = new Regex(@"462.libquantum</a></td>[\s\S]*?</tr>");
+            var r8 = new Regex(@"464.h264ref</a></td>[\s\S]*?</tr>");
+            var r9 = new Regex(@"471.omnetpp</a></td>[\s\S]*?</tr>");
+            var r10 = new Regex(@"473.astar</a></td>[\s\S]*?</tr>");
+            var r11 = new Regex(@"483.xalancbmk</a></td>[\s\S]*?</tr>");
             ItemMatch(dr, "perlbench", r0, page);
             ItemMatch(dr, "bzip2", r1, page);
             ItemMatch(dr, "gcc", r2, page);
@@ -312,25 +311,25 @@ namespace SepcReptile
             ItemMatch(dr, "xalancbmk", r11, page);
         }
 
-        void FPDetail(DataRow dr, string page)
+        private void FpDetail(DataRow dr, string page)
         {
-            Regex r0 = new Regex(@"410.bwaves</a></td>[\s\S]*?</tr>");
-            Regex r1 = new Regex(@"416.gamess</a></td>[\s\S]*?</tr>");
-            Regex r2 = new Regex(@"433.milc</a></td>[\s\S]*?</tr>");
-            Regex r3 = new Regex(@"434.zeusmp</a></td>[\s\S]*?</tr>");
-            Regex r4 = new Regex(@"435.gromacs</a></td>[\s\S]*?</tr>");
-            Regex r5 = new Regex(@"436.cactusADM</a></td>[\s\S]*?</tr>");
-            Regex r6 = new Regex(@"437.leslie3d</a></td>[\s\S]*?</tr>");
-            Regex r7 = new Regex(@"444.namd</a></td>[\s\S]*?</tr>");
-            Regex r8 = new Regex(@"447.dealII</a></td>[\s\S]*?</tr>");
-            Regex r9 = new Regex(@"450.soplex</a></td>[\s\S]*?</tr>");
-            Regex r10 = new Regex(@"453.povray</a></td>[\s\S]*?</tr>");
-            Regex r11 = new Regex(@"454.calculix</a></td>[\s\S]*?</tr>");
-            Regex r12 = new Regex(@"459.GemsFDTD</a></td>[\s\S]*?</tr>");
-            Regex r13 = new Regex(@"465.tonto</a></td>[\s\S]*?</tr>");
-            Regex r14 = new Regex(@"470.lbm</a></td>[\s\S]*?</tr>");
-            Regex r15 = new Regex(@"481.wrf</a></td>[\s\S]*?</tr>");
-            Regex r16 = new Regex(@"482.sphinx3</a></td>[\s\S]*?</tr>");
+            var r0 = new Regex(@"410.bwaves</a></td>[\s\S]*?</tr>");
+            var r1 = new Regex(@"416.gamess</a></td>[\s\S]*?</tr>");
+            var r2 = new Regex(@"433.milc</a></td>[\s\S]*?</tr>");
+            var r3 = new Regex(@"434.zeusmp</a></td>[\s\S]*?</tr>");
+            var r4 = new Regex(@"435.gromacs</a></td>[\s\S]*?</tr>");
+            var r5 = new Regex(@"436.cactusADM</a></td>[\s\S]*?</tr>");
+            var r6 = new Regex(@"437.leslie3d</a></td>[\s\S]*?</tr>");
+            var r7 = new Regex(@"444.namd</a></td>[\s\S]*?</tr>");
+            var r8 = new Regex(@"447.dealII</a></td>[\s\S]*?</tr>");
+            var r9 = new Regex(@"450.soplex</a></td>[\s\S]*?</tr>");
+            var r10 = new Regex(@"453.povray</a></td>[\s\S]*?</tr>");
+            var r11 = new Regex(@"454.calculix</a></td>[\s\S]*?</tr>");
+            var r12 = new Regex(@"459.GemsFDTD</a></td>[\s\S]*?</tr>");
+            var r13 = new Regex(@"465.tonto</a></td>[\s\S]*?</tr>");
+            var r14 = new Regex(@"470.lbm</a></td>[\s\S]*?</tr>");
+            var r15 = new Regex(@"481.wrf</a></td>[\s\S]*?</tr>");
+            var r16 = new Regex(@"482.sphinx3</a></td>[\s\S]*?</tr>");
             ItemMatch(dr, "bwaves",r0,page);
             ItemMatch(dr, "gamess", r1, page);
             ItemMatch(dr, "milc", r2, page);

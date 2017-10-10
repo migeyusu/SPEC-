@@ -6,7 +6,7 @@ namespace SepcReptile
     public class TextLog
     {
         public string Path { get; set; }
-        StreamWriter sw;
+        private StreamWriter _sw;
         public TextLog(string path)
         {
             Path = path;
@@ -14,9 +14,9 @@ namespace SepcReptile
         }
         public void Write(string sentence)
         {
-            sw = new StreamWriter(Path, true);
-            sw.WriteLine(DateTime.Now.ToLongDateString()+":"+sentence);
-            sw.Close();
+            _sw = new StreamWriter(Path, true);
+            _sw.WriteLine(DateTime.Now.ToLongDateString()+":"+sentence);
+            _sw.Close();
         }
     }
 }

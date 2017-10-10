@@ -4,9 +4,9 @@ using System.Windows.Forms;
 
 namespace SepcReptile
 {
-    public partial class regtest : Form
+    public partial class Regtest : Form
     {
-        public regtest()
+        public Regtest()
         {
             InitializeComponent();
         }
@@ -18,7 +18,7 @@ namespace SepcReptile
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Regex rt = new Regex(textBox1.Text);
+            var rt = new Regex(textBox1.Text);
             if(rt.IsMatch(textBox2.Text))
             {
                

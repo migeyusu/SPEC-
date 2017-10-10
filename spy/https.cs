@@ -7,6 +7,7 @@ using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace SepcReptile
@@ -27,12 +28,12 @@ namespace SepcReptile
     public class WorkFlow
     {
         public string DataBase { get; set; }
-        public string FromSQL { get; set; }
-        public string URLColumn { get; set; }
+        public string FromSql { get; set; }
+        public string UrlColumn { get; set; }
         public string ValTable { get; set; }
         public bool Enable { get; set; }
         public List<string> ValColumns { get; set; }
-        public int SN { get; set; }
+        public int Sn { get; set; }
         public string Sign { get; set; }
     }
     /// <summary>
@@ -45,13 +46,13 @@ namespace SepcReptile
     /// </summary>
     public abstract class Reptile
     {
-        protected ManualResetEvent suspendsign;
+        protected ManualResetEvent Suspendsign;
         protected SqlWorkUnit Database;
         public bool Work { get; set; }
         public bool Suspending { get; set; }
-        protected object urlLocker, saveLocker, countLocker;
-        protected DataTable URL { get; set; }
-        protected int URLHand, NetSpeed;
+        protected object UrlLocker, SaveLocker, CountLocker;
+        protected DataTable Url { get; set; }
+        protected int UrlHand, NetSpeed;
         /// <summary>
         /// 子类需要初始化datatable的架构定义
         /// </summary>
@@ -73,10 +74,7 @@ namespace SepcReptile
         protected WorkFlow PreWorkFlow;
         public int LeaveThread
         {
-            get
-            {
-                return leaveThread;
-            }
+            get => leaveThread;
             set
             {
                 leaveThread = value;
@@ -90,36 +88,36 @@ namespace SepcReptile
         public Reptile()
         {
             Suspending = false;
-            urlLocker = new object();
-            saveLocker = new object();
-            countLocker = new object();
+            UrlLocker = new object();
+            SaveLocker = new object();
+            CountLocker = new object();
             WorkFlows = new Queue<WorkFlow>();
-            suspendsign = new ManualResetEvent(false);
-            URLHand = 0;
+            Suspendsign = new ManualResetEvent(false);
+            UrlHand = 0;
             Work = false;
             Interval = 1800;
             PreRowsCount = 0;
             MaxRowsCount = 500;
         }
 
-        void Reptile_OnDealEnd()
+        private void Reptile_OnDealEnd()
         {
             //更新url表
-            Database.Update(URL);
+            Database.Update(Url);
             //储存未写入数据
             if (CommonStructureTable.Rows.Count > 0)
             {
                 Database.Save(CommonStructureTable, PreWorkFlow.ValTable, PreWorkFlow.ValColumns);
             }
             //reflash config
-            XmlNodeList xnl = ConfigurationDoc.GetElementsByTagName("workflow");
+            var xnl = ConfigurationDoc.GetElementsByTagName("workflow");
             //工作流更新
-            if (Work == true)
+            if (Work)
             {
                 PreWorkFlow.Enable = false;
                 foreach (XmlNode xn in xnl)
                 {
-                    if (xn.Attributes["sn"].Value == PreWorkFlow.SN.ToString())
+                    if (xn.Attributes["sn"].Value == PreWorkFlow.Sn.ToString())
                     {
                         xn.Attributes["enable"].Value = false.ToString();
                         ConfigurationDoc.Save(ConfigPath);
@@ -129,20 +127,17 @@ namespace SepcReptile
                 Work = false;
                 if (WorkFlows.Count > 0)//切换工作流
                 {
-                    if (OnWorkFlowEnd != null)
-                        OnWorkFlowEnd();
+                    OnWorkFlowEnd?.Invoke();
                     StartWorkFolow();
                 }
                 else
                 {
-                    if (OnWorkComplete != null)//工作完成！
-                        OnWorkComplete();
+                    OnWorkComplete?.Invoke();
                 }
             }
             else
             {
-                if (OnStop != null)//工作暂停！
-                    OnStop();
+                OnStop?.Invoke();
             }
         }
 
@@ -167,29 +162,29 @@ namespace SepcReptile
         public virtual void Resume()
         {
             Suspending = false;
-            suspendsign.Set();
+            Suspendsign.Set();
         }
 
         protected virtual void ConfigIni(string config)
         {
             ConfigPath = config;
-            XmlDocument xd = new XmlDocument();
+            var xd = new XmlDocument();
             xd.Load(config);
             ConfigurationDoc = xd;
-            XmlElement root = xd.DocumentElement;
-            string datapath = root.Attributes["database"].Value;
+            var root = xd.DocumentElement;
+            var datapath = root.Attributes["database"].Value;
             Database = new SqlWorkUnit(datapath, @".\SQLEXPRESS");
-            XmlNodeList xnl = root.GetElementsByTagName("workflow");
+            var xnl = root.GetElementsByTagName("workflow");
             foreach (XmlElement x in xnl)
             {
-                WorkFlow wf = new WorkFlow() { Enable = bool.Parse(x.Attributes["enable"].Value), SN = int.Parse(x.Attributes["sn"].Value) };
-                XmlNode xn = x.GetElementsByTagName("URL")[0];
-                wf.URLColumn = xn.Attributes["column"].Value;
-                wf.FromSQL = xn.Attributes["fromsql"].Value;
+                var wf = new WorkFlow() { Enable = bool.Parse(x.Attributes["enable"].Value), Sn = int.Parse(x.Attributes["sn"].Value) };
+                var xn = x.GetElementsByTagName("URL")[0];
+                wf.UrlColumn = xn.Attributes["column"].Value;
+                wf.FromSql = xn.Attributes["fromsql"].Value;
                 wf.Sign = xn.Attributes["sign"].Value;
-                XmlElement valuele = (XmlElement)x.GetElementsByTagName("Value")[0];
+                var valuele = (XmlElement)x.GetElementsByTagName("Value")[0];
                 wf.ValTable = valuele.Attributes["table"].Value;
-                XmlNodeList columns = valuele.GetElementsByTagName("column");
+                var columns = valuele.GetElementsByTagName("column");
                 wf.ValColumns = new List<string>();
                 foreach (XmlNode column in columns)
                 {
@@ -217,21 +212,13 @@ namespace SepcReptile
                     if (PreWorkFlow.Enable)
                         break;
                 }
-                if (PreWorkFlow == null)
-                {
-                    if (OnWorkComplete != null)
-                    {
-                        OnWorkComplete();
-                        return;
-                    }
-                    else
-                    {
-                        return;
-                    }
+                if (PreWorkFlow == null) {
+                    OnWorkComplete?.Invoke();
+                    return;
                 }
             }
-            URL = Database.ExuSQLDataTable(PreWorkFlow.FromSQL);
-            URLHand = 0;
+            Url = Database.ExuSqlDataTable(PreWorkFlow.FromSql);
+            UrlHand = 0;
             TableIni();
             ReptileStart();
         }
@@ -241,33 +228,29 @@ namespace SepcReptile
             Work = true;
             CurrentTdCount = 0;
             leaveThread = MaxTdCount;
-            Thread td0 = new Thread(Monitor);
-            td0.IsBackground = true;
-            td0.Start();
-            for (int i = 0; i < MaxTdCount; ++i)
-            {
-                Thread td = new Thread(MainThread);
-                td.IsBackground = true;
-                td.Start();
+            Task.Run(() => Monitor());
+            for (var i = 0; i < MaxTdCount; ++i) {
+                Task.Run(() => MainThread());
             }
         }
 
         protected void Monitor()
         {
-            int pre = 0, urlhand = 0, urlcount = 0;
+            var pre = 0;
             while(Work)
             {
                 Thread.Sleep(1000);
                 NetSpeed -= pre;
                 pre = NetSpeed;
-                
-                lock(urlLocker)
+
+                int urlhand;
+                int urlcount;
+                lock(UrlLocker)
                 {
-                    urlhand = URLHand;
-                    urlcount = URL.Rows.Count;
+                    urlhand = UrlHand;
+                    urlcount = Url.Rows.Count;
                 }
-                if (OnStateMonitor != null)
-                    OnStateMonitor(NetSpeed, urlhand, urlcount);
+                OnStateMonitor?.Invoke(NetSpeed, urlhand, urlcount);
             }
         }
 
@@ -388,10 +371,10 @@ namespace SepcReptile
 
         protected void MainThread()
         {
-            ARequest ar = new ARequest();
-            string url = "";
-            int prehand = 0;
-            lock (countLocker)
+            var ar = new ARequest();
+            var url = "";
+            var prehand = 0;
+            lock (CountLocker)
             {
                 CurrentTdCount += 1;
                 LeaveThread -= 1;
@@ -400,15 +383,15 @@ namespace SepcReptile
             {
                 if (Suspending)
                 {
-                    suspendsign.WaitOne();
+                    Suspendsign.WaitOne();
                 }
-                lock (urlLocker)
+                lock (UrlLocker)
                 {
-                    if (URLHand < URL.Rows.Count)
+                    if (UrlHand < Url.Rows.Count)
                     {
-                        prehand = URLHand;
-                        url = URL.Rows[URLHand][PreWorkFlow.URLColumn].ToString();
-                        URLHand += 1;
+                        prehand = UrlHand;
+                        url = Url.Rows[UrlHand][PreWorkFlow.UrlColumn].ToString();
+                        UrlHand += 1;
                     }
                     else
                     {
@@ -417,8 +400,8 @@ namespace SepcReptile
                 }
                 if (url == null)
                     break;
-                int times = 0;
-                string page = "";
+                var times = 0;
+                var page = "";
                 while (times <= 5)
                 {
                     page = ar.GetHtml(url);
@@ -432,15 +415,15 @@ namespace SepcReptile
                     continue;
                 }
                 NetSpeed += ar.ReceiveLength / 1024;
-                DataRow[] drs = Deal(page);
-                lock (urlLocker)
+                var drs = Deal(page);
+                lock (UrlLocker)
                 {
                     //表示读取成功
-                    URL.Rows[prehand][PreWorkFlow.Sign] = 1;
+                    Url.Rows[prehand][PreWorkFlow.Sign] = 1;
                 }
-                lock (saveLocker)
+                lock (SaveLocker)
                 {
-                    foreach (DataRow dr in drs)
+                    foreach (var dr in drs)
                     {
                         CommonStructureTable.Rows.Add(dr);
                     }
@@ -452,7 +435,7 @@ namespace SepcReptile
                     }
                 }
             }
-            lock (countLocker)
+            lock (CountLocker)
             {
                 CurrentTdCount -= 1;
                 LeaveThread += 1;   //线程标记回收
@@ -466,28 +449,28 @@ namespace SepcReptile
 
     }
 
-    class URLCreate
+    internal class UrlCreate
     {
         public static string ParameterEncode(string str)
         {
-            StringBuilder seed = new StringBuilder();
-            byte[] results = Encoding.UTF8.GetBytes(str);
-            for (int i = 0; i < results.Length; ++i)
+            var seed = new StringBuilder();
+            var results = Encoding.UTF8.GetBytes(str);
+            for (var i = 0; i < results.Length; ++i)
                 seed.Append(@"%" + Convert.ToString(results[i], 16));
             return seed.ToString();
         }
         public void HashtableSerialize(Hashtable ht,string filepath)
         {
-            FileStream fs = new FileStream(filepath, FileMode.Create);
-            BinaryFormatter bf = new BinaryFormatter();
+            var fs = new FileStream(filepath, FileMode.Create);
+            var bf = new BinaryFormatter();
             bf.Serialize(fs, ht);
             fs.Close();
         }
         public Hashtable HashtableDeserialize(string filepath)
         {
-            FileStream fs = new FileStream(filepath, FileMode.OpenOrCreate);
-            BinaryFormatter bf = new BinaryFormatter();
-            Hashtable ht = (Hashtable)bf.Deserialize(fs);
+            var fs = new FileStream(filepath, FileMode.OpenOrCreate);
+            var bf = new BinaryFormatter();
+            var ht = (Hashtable)bf.Deserialize(fs);
             fs.Close();
             return ht;
         }
@@ -495,119 +478,96 @@ namespace SepcReptile
     /// <summary>
     /// 线程安全
     /// </summary>
-    class HtmlPageCollect
+    internal class HtmlPageCollect
     {
-        bool working;
-        bool waiting = false;//抓取线程是否处于等待
-        Queue<string> UrlSource=new Queue<string>();
-        Queue<string> ResultHtml = new Queue<string>();
-        object sourcelocker = new object(), resultlocker = new object();
-        ManualResetEvent grabsign = new ManualResetEvent(false);
+        private bool _working;
+        private bool _waiting = false;//抓取线程是否处于等待
+        private Queue<string> _urlSource=new Queue<string>();
+        private readonly Queue<string> _resultHtml = new Queue<string>();
+        private readonly object _sourcelocker = new object();
+        private readonly object _resultlocker = new object();
+        private readonly ManualResetEvent _grabsign = new ManualResetEvent(false);
         public event Action OnEnd;
         public void Start()
         {
-            if (working)
+            if (_working)
                 return;
-            Thread td = new Thread(GrabThread);
-            td.IsBackground = true;
-            td.Start();
+            Task.Run(()=>GrabThread());
         }
         public void End()
         {
-            working = false;
-            if (waiting)
-                grabsign.Set();
+            _working = false;
+            if (_waiting)
+                _grabsign.Set();
         }
         public void GrabThread()
         {
-            string url, htmldata;
-            try
-            {
-                while (working)
+            try {
+                while (_working)
                 {
-                    lock (sourcelocker)
-                    {
-                        if (UrlSource.Count > 0)
-                        {
-                            url = UrlSource.Dequeue();
-                        }
-                        else
-                        {
-                            url = null; 
-                        }
+                    string url;
+                    lock (_sourcelocker) {
+                        url = _urlSource.Count > 0 ? _urlSource.Dequeue() : null;
                     }
                     if (url == null)
                     {
-                        waiting = true;
-                        grabsign.WaitOne();
+                        _waiting = true;
+                        _grabsign.WaitOne();
                         continue;
                     }
-                    waiting = false;
-                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                    _waiting = false;
+                    var request = (HttpWebRequest)WebRequest.Create(url);
                     request.Method = "GET";
                     request.Timeout = 3000;
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                    string contenttype = response.Headers[HttpResponseHeader.ContentType];
-                    string encodestr = RegexpOperation.GroupSingleRegex(contenttype, "charset=(.*)");
-                    Encoding encoding;
-                    if (encodestr != null)
-                    {
-                        encoding = Encoding.GetEncoding(encodestr.Trim());
-                    }
-                    else
-                    {
-                        encoding = Encoding.Default;
-                    }
-                    using (StreamReader sr = new StreamReader(response.GetResponseStream(), encoding))
+                    var response = (HttpWebResponse)request.GetResponse();
+                    var contenttype = response.Headers[HttpResponseHeader.ContentType];
+                    var encodestr = RegexpOperation.GroupSingleRegex(contenttype, "charset=(.*)");
+                    var encoding = encodestr != null ? Encoding.GetEncoding(encodestr.Trim()) : Encoding.Default;
+                    string htmldata;
+                    using (var sr = new StreamReader(response.GetResponseStream(), encoding))
                     {
                         htmldata = sr.ReadToEnd();
                         sr.Close();
                     }
                     response.Close();
-                    lock (resultlocker)
+                    lock (_resultlocker)
                     {
-                        ResultHtml.Enqueue(htmldata);
+                        _resultHtml.Enqueue(htmldata);
                     }
                 }
             }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                if (OnEnd != null)
-                    OnEnd();
+            finally {
+                OnEnd?.Invoke();
             }
         }
         public string PopHtml()
         {
             string result = null;
-            lock(resultlocker)
+            lock(_resultlocker)
             {
-                if(ResultHtml.Count>0)
+                if(_resultHtml.Count>0)
                 {
-                    result = ResultHtml.Dequeue();
+                    result = _resultHtml.Dequeue();
                 }
             }
             return result;
         }
         public void PushUrl(string val)
         {
-            lock (sourcelocker)
+            lock (_sourcelocker)
             {
-                UrlSource.Enqueue(val);
+                _urlSource.Enqueue(val);
             }
-            if (waiting)
-                grabsign.Set();
+            if (_waiting)
+                _grabsign.Set();
         }
         public string[] Collection
         {
             get
             {
-                lock(resultlocker)
+                lock(_resultlocker)
                 {
-                    string[] vals = ResultHtml.ToArray();
+                    var vals = _resultHtml.ToArray();
                     return vals;
                 }
             }
@@ -616,17 +576,17 @@ namespace SepcReptile
         {
             get
             {
-                lock(sourcelocker)
+                lock(_sourcelocker)
                 {
-                    string[] vals = UrlSource.ToArray();
+                    var vals = _urlSource.ToArray();
                     return vals;
                 }
             }
             set
             {
-                lock(sourcelocker)
+                lock(_sourcelocker)
                 {
-                    UrlSource = new Queue<string>(value);
+                    _urlSource = new Queue<string>(value);
                 }
             }
         }

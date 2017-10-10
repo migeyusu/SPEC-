@@ -1,6 +1,6 @@
 ﻿namespace SepcReptile
 {
-    partial class regtest
+    partial class Regtest
     {
         /// <summary>
         /// Required designer variable.
@@ -110,7 +110,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button1);
-            this.Name = "regtest";
+            this.Name = "Regtest";
             this.Text = "regtest";
             this.Load += new System.EventHandler(this.regtest_Load);
             this.ResumeLayout(false);

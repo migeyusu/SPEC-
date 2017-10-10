@@ -3,19 +3,19 @@ using System.Windows.Forms;
 
 namespace SepcReptile
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// 应用程序的主入口点。
         /// </summary>
         [STAThread]
-        static void Main()
+        private static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Form3 fm = new Form3();
+            var fm = new Form3();
             Application.Run(fm);
-            fm.database.Clear();
+            fm.Database.Clear();
         }
     }
 }

@@ -39,7 +39,7 @@ namespace SepcReptile.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SepcReptile.Properties.Resources", typeof(Resources).Assembly);
+                    var temp = new global::System.Resources.ResourceManager("SepcReptile.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -65,7 +65,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap A10 {
             get {
-                object obj = ResourceManager.GetObject("A10", resourceCulture);
+                var obj = ResourceManager.GetObject("A10", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -75,7 +75,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap apu {
             get {
-                object obj = ResourceManager.GetObject("apu", resourceCulture);
+                var obj = ResourceManager.GetObject("apu", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -85,7 +85,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap atom {
             get {
-                object obj = ResourceManager.GetObject("atom", resourceCulture);
+                var obj = ResourceManager.GetObject("atom", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -95,7 +95,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap fx {
             get {
-                object obj = ResourceManager.GetObject("fx", resourceCulture);
+                var obj = ResourceManager.GetObject("fx", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -105,7 +105,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap i3 {
             get {
-                object obj = ResourceManager.GetObject("i3", resourceCulture);
+                var obj = ResourceManager.GetObject("i3", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -115,7 +115,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap i5 {
             get {
-                object obj = ResourceManager.GetObject("i5", resourceCulture);
+                var obj = ResourceManager.GetObject("i5", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -125,7 +125,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap i7 {
             get {
-                object obj = ResourceManager.GetObject("i7", resourceCulture);
+                var obj = ResourceManager.GetObject("i7", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -135,7 +135,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap ico2 {
             get {
-                object obj = ResourceManager.GetObject("ico2", resourceCulture);
+                var obj = ResourceManager.GetObject("ico2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -145,7 +145,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap logo {
             get {
-                object obj = ResourceManager.GetObject("logo", resourceCulture);
+                var obj = ResourceManager.GetObject("logo", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -155,7 +155,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap 土龙 {
             get {
-                object obj = ResourceManager.GetObject("土龙", resourceCulture);
+                var obj = ResourceManager.GetObject("土龙", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -165,7 +165,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap 奔腾 {
             get {
-                object obj = ResourceManager.GetObject("奔腾", resourceCulture);
+                var obj = ResourceManager.GetObject("奔腾", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -175,7 +175,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap 皓龙 {
             get {
-                object obj = ResourceManager.GetObject("皓龙", resourceCulture);
+                var obj = ResourceManager.GetObject("皓龙", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -185,7 +185,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap 羿龙 {
             get {
-                object obj = ResourceManager.GetObject("羿龙", resourceCulture);
+                var obj = ResourceManager.GetObject("羿龙", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -195,7 +195,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap 至强 {
             get {
-                object obj = ResourceManager.GetObject("至强", resourceCulture);
+                var obj = ResourceManager.GetObject("至强", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -205,7 +205,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap 赛扬1 {
             get {
-                object obj = ResourceManager.GetObject("赛扬1", resourceCulture);
+                var obj = ResourceManager.GetObject("赛扬1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -215,7 +215,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap 速龙 {
             get {
-                object obj = ResourceManager.GetObject("速龙", resourceCulture);
+                var obj = ResourceManager.GetObject("速龙", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -225,7 +225,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap 酷睿2 {
             get {
-                object obj = ResourceManager.GetObject("酷睿2", resourceCulture);
+                var obj = ResourceManager.GetObject("酷睿2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -235,7 +235,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap 酷睿2E {
             get {
-                object obj = ResourceManager.GetObject("酷睿2E", resourceCulture);
+                var obj = ResourceManager.GetObject("酷睿2E", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -245,7 +245,7 @@ namespace SepcReptile.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap 酷睿2q {
             get {
-                object obj = ResourceManager.GetObject("酷睿2q", resourceCulture);
+                var obj = ResourceManager.GetObject("酷睿2q", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

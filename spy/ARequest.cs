@@ -11,25 +11,28 @@ namespace SepcReptile
 {
     public class ARequest
     {
-        Dictionary<string, IPAddress> DNSCache;
-        const int IPPort = 80;
-        int buffersize = 16384;
-        public bool read;
+        private readonly Dictionary<string, IPAddress> _dnsCache;
+        private const int IpPort = 80;
+        private readonly int _buffersize = 16384;
+        public bool Read;
         public int WaitTime { get; set; }
+
         public ARequest()
         {
             WaitTime = 3400;
-            read = true;
-            DNSCache = new Dictionary<string, IPAddress>();
+            Read = true;
+            _dnsCache = new Dictionary<string, IPAddress>();
         }
+
         public int ReceiveLength { get; set; }
-        string Request(string url, string host)
+
+        private string Request(string url, string host)
         {
             if (url.Contains("http://"))
                 url = url.Substring(7, url.Length - 7);
-            StringBuilder head = new StringBuilder();
+            var head = new StringBuilder();
             head.Append("GET ");
-            int position = url.IndexOf('/');
+            var position = url.IndexOf('/');
             head.Append(url.Substring(position, url.Length - position));
             head.Append(" HTTP/1.1");
             head.Append("\r\n");
@@ -39,61 +42,53 @@ namespace SepcReptile
             head.Append("\r\n");
             return head.ToString();
         }
+
         //同步方法
         public string GetHtml(string url)
         {
-            if (url.Contains("https://"))
-            {
+            if (url.Contains("https://")) {
                 url = url.Substring(8, url.Length - 8);
             }
-            else if (url.Contains("http://"))
-            {
+            else if (url.Contains("http://")) {
                 url = url.Substring(7, url.Length - 7);
             }
-            else
-            {
+            else {
                 throw new ArgumentException("未识别的URL");
             }
             string page = null;
-            MemoryStream ms = new MemoryStream();
-            int position = url.IndexOf('/') + 1;
-            TcpClient tc = new TcpClient();
-            string host = url.Substring(0, position - 1);
-            bool acomplished = false;
+            var ms = new MemoryStream();
+            var position = url.IndexOf('/') + 1;
+            var tc = new TcpClient();
+            var host = url.Substring(0, position - 1);
+            var acomplished = false;
             NetworkStream ns = null;
-            Thread td = new Thread(() =>
-            {
-                try
-                {
-                    IPAddress ipa = DNSCache.Keys.Contains(host) ? DNSCache[host] : Dns.GetHostAddresses(host)[0];
-                    tc.Connect(new IPEndPoint(ipa, IPPort));
+            var td = new Thread(() => {
+                try {
+                    var ipa = _dnsCache.Keys.Contains(host) ? _dnsCache[host] : Dns.GetHostAddresses(host)[0];
+                    tc.Connect(new IPEndPoint(ipa, IpPort));
                     ns = tc.GetStream();
-                    byte[] buffer = new byte[buffersize];
-                    byte[] head = Encoding.UTF8.GetBytes(Request(url, host));
+                    var buffer = new byte[_buffersize];
+                    var head = Encoding.UTF8.GetBytes(Request(url, host));
                     ns.Write(head, 0, head.Length);
-                    read = true;
-                    while (read)
-                    {
+                    Read = true;
+                    while (Read) {
                         position = ns.Read(buffer, 0, buffer.Length);
                         ms.Write(buffer, 0, position);
-                        if (Encoding.UTF8.GetString(ms.ToArray()).Contains("</html>"))
-                        {
-                            read = false;
+                        if (Encoding.UTF8.GetString(ms.ToArray()).Contains("</html>")) {
+                            Read = false;
                         }
                     }
                     page = Encoding.UTF8.GetString(ms.ToArray());
                     ReceiveLength = ms.ToArray().Length;
                     ns.Close();
                     tc.Close();
-                    if (!page.Contains("</html>"))
-                    {
+                    if (!page.Contains("</html>")) {
                         page = null;
                     }
                     acomplished = true;
                 }
-                catch (Exception)
-                {
-                    read = false;
+                catch (Exception) {
+                    Read = false;
                     acomplished = true;
                     page = null;
                 }
@@ -101,20 +96,16 @@ namespace SepcReptile
             });
             td.IsBackground = true;
             td.Start();
-            int i = 0;
-            while (i < 3000)
-            {
+            var i = 0;
+            while (i < 3000) {
                 Thread.Sleep(300);
                 i += 300;
-                if (acomplished)
-                {
+                if (acomplished) {
                     break;
                 }
             }
-            if (read)
-            {
-               if(ns!=null)
-                   ns.Close();
+            if (Read) {
+                ns?.Close();
                 tc.Close();
             }
             return page;

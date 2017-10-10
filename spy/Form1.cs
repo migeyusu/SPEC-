@@ -15,14 +15,15 @@ namespace SepcReptile
             InitializeComponent();
             timer1.Enabled = false;
         }
-        SqlWorkUnit database;
+
+        private SqlWorkUnit _database;
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            TextLog tl = new TextLog(Application.StartupPath+"direct.txt");
+            var tl = new TextLog(Application.StartupPath+"direct.txt");
           
-            sr.OnWorkComplete += sr_OnWorkEnd;
-            sr.OnUrlError += (s) =>
+            _sr.OnWorkComplete += sr_OnWorkEnd;
+            _sr.OnUrlError += (s) =>
             {
                 this.Invoke(new MethodInvoker(() =>
                 {
@@ -30,9 +31,9 @@ namespace SepcReptile
                     tl.Write(s);
                 }));
             };
-            sr.OnWorkComplete += sr_OnWorkComplete;
-            sr.OnStop += sr_OnStop;
-            sr.OnStateMonitor = (a, b, c) =>
+            _sr.OnWorkComplete += sr_OnWorkComplete;
+            _sr.OnStop += sr_OnStop;
+            _sr.OnStateMonitor = (a, b, c) =>
             {
                 this.Invoke(new MethodInvoker(() =>
                 {
@@ -40,10 +41,10 @@ namespace SepcReptile
                     label8.Text = b + "/" + c;
                 }));
             };
-            database = new SqlWorkUnit(@"D:\spy\spy\bin\Release\GPUBenchmark.mdf", @".\SQLEXPRESS");
+            _database = new SqlWorkUnit(@"D:\spy\spy\bin\Release\GPUBenchmark.mdf", @".\SQLEXPRESS");
         }
 
-        void sr_OnStop()
+        private void sr_OnStop()
         {
             this.Invoke(new MethodInvoker(() =>
             {
@@ -51,16 +52,17 @@ namespace SepcReptile
             }));
         }
 
-        void sr_OnWorkComplete()
+        private void sr_OnWorkComplete()
         {
             this.Invoke(new MethodInvoker(() =>
             {
                 label10.Text = "已完成";
             }));
         }
-        void List()
+
+        private void List()
         {
-            List<string> map = new List<string>();
+            var map = new List<string>();
             map.Add("system");
             map.Add("scoretype");
             map.Add("result");
@@ -69,7 +71,7 @@ namespace SepcReptile
             map.Add("published");
             map.Add("csv");
             map.Add("html");
-            DataTable dt = new DataTable();
+            var dt = new DataTable();
             dt.Columns.Add(new DataColumn("id"));
             dt.Columns.Add(new DataColumn("system"));
             dt.Columns.Add(new DataColumn("scoretype"));
@@ -79,24 +81,24 @@ namespace SepcReptile
             dt.Columns.Add(new DataColumn("published"));
             dt.Columns.Add(new DataColumn("csv"));
             dt.Columns.Add(new DataColumn("html"));
-            StreamReader s = new StreamReader(Application.StartupPath+"\\CPU2006 Results3 -- Results.html");
-            string page = s.ReadToEnd();
+            var s = new StreamReader(Application.StartupPath+"\\CPU2006 Results3 -- Results.html");
+            var page = s.ReadToEnd();
             s.Close();
-            Regex r0 = new Regex(@"CINT2006</h3>[\s\S]+?</table>");
-            Regex r1 = new Regex(@"CFP2006</h3>[\s\S]+?</table>");
-            Regex r2 = new Regex(@"CINT2006 Rates</h3>[\s\S]+?</table>");
-            Regex r3 = new Regex(@"CFP2006 Rates</h3>[\s\S]+?</table>");
+            var r0 = new Regex(@"CINT2006</h3>[\s\S]+?</table>");
+            var r1 = new Regex(@"CFP2006</h3>[\s\S]+?</table>");
+            var r2 = new Regex(@"CINT2006 Rates</h3>[\s\S]+?</table>");
+            var r3 = new Regex(@"CFP2006 Rates</h3>[\s\S]+?</table>");
             Int(dt, r0.Match(page).Value);
             IntRates(dt, r2.Match(page).Value);
-            FP(dt, r1.Match(page).Value);
-            FPRates(dt, r3.Match(page).Value);
-            database.Save(dt, "speclist", map);
+            Fp(dt, r1.Match(page).Value);
+            FpRates(dt, r3.Match(page).Value);
+            _database.Save(dt, "speclist", map);
             MessageBox.Show("ok");
         }
 
         private DataTable TableIni(string type)
         {
-            DataTable dt = new DataTable();
+            var dt = new DataTable();
             dt.Columns.Add("peak");
             dt.Columns.Add("base");
             dt.Columns.Add("testdate");
@@ -252,11 +254,11 @@ namespace SepcReptile
             return dt;
         }
 
-        SpecReptile sr = new SpecReptile(Application.StartupPath + "\\config.xml");
+        private readonly SpecReptile _sr = new SpecReptile(Application.StartupPath + "\\config.xml");
 
         private void button1_Click(object sender, EventArgs e)
         {
-            sr.Start(26);
+            _sr.Start(26);
             timer1.Enabled = true;
  
             label10.Text = "已开始";
@@ -290,23 +292,24 @@ namespace SepcReptile
         }
 
 
-        void sr_OnWorkEnd()
+        private void sr_OnWorkEnd()
         {
             this.Invoke(new MethodInvoker(() => { label10.Text = "已完成"; }));
         }
-        void HeadDetail(DataRow dr,string page)
+
+        private void HeadDetail(DataRow dr,string page)
         {
-            Regex r0 = new Regex(@"<span class=""value"">(.*?)</span>");
-            Regex r1 = new Regex(@"test_date_val"">(.*?)</td>");
-            Regex r2 = new Regex(@"CPU Name</a>:</th>\n\s+?<td>(.*?)</td>");
-            Regex r3 = new Regex(@"orderable</a>:</th>\n\s*?<td>(.*?)</td>");
-            Regex r4 = new Regex(@"CPU MHz</a>:</th>\n\s+?<td>(.*?)</td>");
-            Regex r5 = new Regex(@"Memory</a>:</th>\n\s+?<td>(.*?)</td>");
-            Regex r6 = new Regex(@"Characteristics</a>:</th>\n\s+?<td>(.*?)</td>");
-            Regex r7 = new Regex(@"Operating System</a>:</th>\n\s+?<td>(.*?)<br>\n(.*?)<br>");
-            Regex r8 = new Regex(@"System State</a>:</th>\n\s+?<td>(.*?)</td>");
-            Regex r9 = new Regex(@"Compiler</a>:</th>\n\s+?<td>([\s\S]*?)</td>");
-            MatchCollection mc = r0.Matches(page);
+            var r0 = new Regex(@"<span class=""value"">(.*?)</span>");
+            var r1 = new Regex(@"test_date_val"">(.*?)</td>");
+            var r2 = new Regex(@"CPU Name</a>:</th>\n\s+?<td>(.*?)</td>");
+            var r3 = new Regex(@"orderable</a>:</th>\n\s*?<td>(.*?)</td>");
+            var r4 = new Regex(@"CPU MHz</a>:</th>\n\s+?<td>(.*?)</td>");
+            var r5 = new Regex(@"Memory</a>:</th>\n\s+?<td>(.*?)</td>");
+            var r6 = new Regex(@"Characteristics</a>:</th>\n\s+?<td>(.*?)</td>");
+            var r7 = new Regex(@"Operating System</a>:</th>\n\s+?<td>(.*?)<br>\n(.*?)<br>");
+            var r8 = new Regex(@"System State</a>:</th>\n\s+?<td>(.*?)</td>");
+            var r9 = new Regex(@"Compiler</a>:</th>\n\s+?<td>([\s\S]*?)</td>");
+            var mc = r0.Matches(page);
             dr["peak"] = mc[0].Groups[1].Value;
             dr["base"] = mc[0].Groups[1].Value;
             dr["testdate"] = r1.Match(page).Groups[1].Value;
@@ -315,14 +318,14 @@ namespace SepcReptile
             dr["frequency"] = r4.Match(page).Groups[1].Value;
             dr["memory"] = r5.Match(page).Groups[1].Value;
             dr["feature"] = r6.Match(page).Groups[1].Value;
-            Match m=r7.Match(page);
+            var m=r7.Match(page);
             dr["os"] = m.Groups[1].Value;
             dr["osversion"] = m.Groups[2].Value;
             dr["osstate"] = r8.Match(page).Groups[1].Value;
             dr["compiler"] = r9.Match(page).Groups[1].Value;
         }
 
-        void IntDetail(DataRow dt,List<float> f)
+        private void IntDetail(DataRow dt,List<float> f)
         {
             dt["perlbenchbases"] = f[0];
             dt["perlbenchbaser"] = f[1];
@@ -374,7 +377,7 @@ namespace SepcReptile
             dt["xalancbmkpeakr"] = f[47];
         }
 
-        void FPDetail(DataRow dt, List<float> f)
+        private void FpDetail(DataRow dt, List<float> f)
         {
             dt["bwavesbases"] = f[0];
             dt["bwavesbaser"] = f[1];
@@ -465,19 +468,19 @@ namespace SepcReptile
            
         }
 
-        void Int(DataTable dt, string paragraph)
+        private void Int(DataTable dt, string paragraph)
         {
-            Regex r0 = new Regex(@"<tr>\n\s\s<td valign=""top"">[\s\S]+?</tr>");
-            Regex r1 = new Regex(@"<td valign=""top"">(.*?)</td>");
-            Regex r2 = new Regex(@"<a href=""(.*?)"">HTML");
-            Regex r3 = new Regex(@"a> <a href=""(.*?)"">CSV");
-            float test=0f;
-            int testi=0;
-            MatchCollection m = r0.Matches(paragraph);
+            var r0 = new Regex(@"<tr>\n\s\s<td valign=""top"">[\s\S]+?</tr>");
+            var r1 = new Regex(@"<td valign=""top"">(.*?)</td>");
+            var r2 = new Regex(@"<a href=""(.*?)"">HTML");
+            var r3 = new Regex(@"a> <a href=""(.*?)"">CSV");
+            var test=0f;
+            var testi=0;
+            var m = r0.Matches(paragraph);
             foreach (Match x in m)
             {
-                MatchCollection m0 = r1.Matches(x.Value);
-                DataRow dr = dt.NewRow();
+                var m0 = r1.Matches(x.Value);
+                var dr = dt.NewRow();
                 dr["system"] = m0[1].Groups[1].Value;
                 dr["scoretype"] = "int";
                 dr["result"] = float.TryParse(m0[2].Groups[1].Value,out test) ? test : 0f;
@@ -490,19 +493,19 @@ namespace SepcReptile
             }
         }
 
-        void FP(DataTable dt, string paragraph)
+        private void Fp(DataTable dt, string paragraph)
         {
-            Regex r0 = new Regex(@"<tr>\n\s\s<td valign=""top"">[\s\S]+?</tr>");
-            Regex r1 = new Regex(@"<td valign=""top"">(.*?)</td>");
-            Regex r2 = new Regex(@"<a href=""(.*?)"">HTML");
-            Regex r3 = new Regex(@"a> <a href=""(.*?)"">CSV");
-            float test = 0f;
-            int testi = 0;
-            MatchCollection m = r0.Matches(paragraph);
+            var r0 = new Regex(@"<tr>\n\s\s<td valign=""top"">[\s\S]+?</tr>");
+            var r1 = new Regex(@"<td valign=""top"">(.*?)</td>");
+            var r2 = new Regex(@"<a href=""(.*?)"">HTML");
+            var r3 = new Regex(@"a> <a href=""(.*?)"">CSV");
+            var test = 0f;
+            var testi = 0;
+            var m = r0.Matches(paragraph);
             foreach (Match x in m)
             {
-                MatchCollection m0 = r1.Matches(x.Value);
-                DataRow dr = dt.NewRow();
+                var m0 = r1.Matches(x.Value);
+                var dr = dt.NewRow();
                 dr["system"] = m0[1].Groups[1].Value;
                 dr["scoretype"] = "fp";
                 dr["result"] = float.TryParse(m0[2].Groups[1].Value, out test) ? test : 0f;
@@ -515,19 +518,19 @@ namespace SepcReptile
             }
         }
 
-        void IntRates(DataTable dt,string paragraph)
+        private void IntRates(DataTable dt,string paragraph)
         {
-            Regex r0 = new Regex(@"<tr>\n\s\s<td valign=""top"">[\s\S]+?</tr>");
-            Regex r1 = new Regex(@"<td valign=""top"">(.*?)</td>");
-            Regex r2 = new Regex(@"<a href=""(.*?)"">HTML");
-            Regex r3 = new Regex(@"a> <a href=""(.*?)"">CSV");
-            MatchCollection m = r0.Matches(paragraph);
-            float test = 0f;
-            int testi = 0;
+            var r0 = new Regex(@"<tr>\n\s\s<td valign=""top"">[\s\S]+?</tr>");
+            var r1 = new Regex(@"<td valign=""top"">(.*?)</td>");
+            var r2 = new Regex(@"<a href=""(.*?)"">HTML");
+            var r3 = new Regex(@"a> <a href=""(.*?)"">CSV");
+            var m = r0.Matches(paragraph);
+            var test = 0f;
+            var testi = 0;
             foreach (Match x in m)
             {
-                MatchCollection m0 = r1.Matches(x.Value);
-                DataRow dr = dt.NewRow();
+                var m0 = r1.Matches(x.Value);
+                var dr = dt.NewRow();
                 dr["system"] = m0[1].Groups[1].Value;
                 dr["scoretype"] = "intrates";
                 dr["result"] = float.TryParse(m0[2].Groups[1].Value, out test) ? test : 0f;
@@ -540,19 +543,19 @@ namespace SepcReptile
             }
         }
 
-        void FPRates(DataTable dt,string paragraph)
+        private void FpRates(DataTable dt,string paragraph)
         {
-            Regex r0 = new Regex(@"<tr>\n\s\s<td valign=""top"">[\s\S]+?</tr>");
-            Regex r1 = new Regex(@"<td valign=""top"">(.*?)</td>");
-            Regex r2 = new Regex(@"<a href=""(.*?)"">HTML");
-            Regex r3 = new Regex(@"a> <a href=""(.*?)"">CSV");
-            float test = 0f;
-            int testi = 0;
-            MatchCollection m = r0.Matches(paragraph);
+            var r0 = new Regex(@"<tr>\n\s\s<td valign=""top"">[\s\S]+?</tr>");
+            var r1 = new Regex(@"<td valign=""top"">(.*?)</td>");
+            var r2 = new Regex(@"<a href=""(.*?)"">HTML");
+            var r3 = new Regex(@"a> <a href=""(.*?)"">CSV");
+            var test = 0f;
+            var testi = 0;
+            var m = r0.Matches(paragraph);
             foreach (Match x in m)
             {
-                MatchCollection m0 = r1.Matches(x.Value);
-                DataRow dr = dt.NewRow();
+                var m0 = r1.Matches(x.Value);
+                var dr = dt.NewRow();
                 dr["system"] = m0[1].Groups[1].Value;
                 dr["scoretype"] = "fprates";
                 dr["result"] = float.TryParse(m0[2].Groups[1].Value, out test) ? test : 0f;
@@ -567,7 +570,7 @@ namespace SepcReptile
 
         private void button2_Click(object sender, EventArgs e)
         {
-            sr.End();
+            _sr.End();
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -578,11 +581,11 @@ namespace SepcReptile
             //Stream s =st.GetResponseStream();
             //StreamReader sr1 = new StreamReader(s);
             //MessageBox.Show(sr1.ReadToEnd());
-            StreamReader sr = new StreamReader(Application.StartupPath + "\\a.txt",false);
-            string page = sr.ReadToEnd();
+            var sr = new StreamReader(Application.StartupPath + "\\a.txt",false);
+            var page = sr.ReadToEnd();
             sr.Close();
-            Regex r10 = new Regex(@"Operating System</a>:</th>[\s\S]*?<td>(.*?)<br />([\s\S]*?)<br /></td>");
-            Match mt = r10.Match(page);
+            var r10 = new Regex(@"Operating System</a>:</th>[\s\S]*?<td>(.*?)<br />([\s\S]*?)<br /></td>");
+            var mt = r10.Match(page);
             MessageBox.Show(mt.Groups[1].Value);
 
 
@@ -590,9 +593,9 @@ namespace SepcReptile
 
         private void button4_Click(object sender, EventArgs e)
         {
-            ARequest ar = new ARequest();
+            var ar = new ARequest();
 
-            StreamWriter sw = new StreamWriter(Application.StartupPath + "\\a.txt");
+            var sw = new StreamWriter(Application.StartupPath + "\\a.txt");
             sw.Write(ar.GetHtml("http://www.spec.org/cpu2006/results/res2014q4/cpu2006-20141216-33623.html"));
             sw.Close();
             //HttpWebRequest r = (HttpWebRequest)WebRequest.Create("http://www.spec.org/cgi-bin/osgresults?conf=cpu2006");
@@ -609,8 +612,8 @@ namespace SepcReptile
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            label2.Text = sr.CurrentTdCount.ToString();
-            label3.Text = sr.LeaveThread.ToString();
+            label2.Text = _sr.CurrentTdCount.ToString();
+            label3.Text = _sr.LeaveThread.ToString();
         }
 
         private void button3_Click_1(object sender, EventArgs e)
