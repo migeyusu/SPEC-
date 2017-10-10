@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Net;
-using System.IO;
+﻿using System.Data;
 using System.Text.RegularExpressions;
-using System.Data;
-using System.Xml;
-namespace spy
+
+namespace SepcReptile
 {
     public class SpecReptile : Reptile
     {

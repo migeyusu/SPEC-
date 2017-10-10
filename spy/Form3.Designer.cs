@@ -1,4 +1,4 @@
-﻿namespace spy
+﻿namespace SepcReptile
 {
     partial class Form3
     {

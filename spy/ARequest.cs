@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-namespace spy
+using System.Text;
+using System.Threading;
+
+namespace SepcReptile
 {
     public class ARequest
     {

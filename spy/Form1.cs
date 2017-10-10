@@ -1,21 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Collections;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Xml;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Net;
-using System.Net.Sockets;
-using System.Windows.Input;
-namespace spy
+using System.Windows.Forms;
+
+namespace SepcReptile
 {
     public partial class Form1 : Form
     {

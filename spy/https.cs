@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Net;
-using System.Net.Sockets;
-using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.IO;
+using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using System.Threading;
 using System.Xml;
-using System.Text.RegularExpressions;
-using System.Windows.Forms;
-namespace spy
+
+namespace SepcReptile
 {
 
     /*
