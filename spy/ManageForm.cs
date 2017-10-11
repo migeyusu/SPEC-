@@ -46,26 +46,26 @@ namespace SepcReptile
             //DataTable dt3 = Database.ExuSQLDataTable("select * from fprates");
             //dt3.TableName = "多线程浮点";
             //ScoreCollection.Tables.Add(dt3);
-            var icos = new ImageList();
-            icos.Images.Add(Properties.Resources.A10);//0
-            icos.Images.Add(Properties.Resources.apu);//1
-            icos.Images.Add(Properties.Resources.atom);//2
-            icos.Images.Add(Properties.Resources.i3);//3
-            icos.Images.Add(Properties.Resources.i5);//4
-            icos.Images.Add(Properties.Resources.i7); //5
-            icos.Images.Add(Properties.Resources.奔腾);//6
-            icos.Images.Add(Properties.Resources.酷睿2);//7
-            icos.Images.Add(Properties.Resources.酷睿2E);//8
-            icos.Images.Add(Properties.Resources.酷睿2q);//9
-            icos.Images.Add(Properties.Resources.赛扬1);//10
-            icos.Images.Add(Properties.Resources.速龙);//11
-            icos.Images.Add(Properties.Resources.土龙);//12
-            icos.Images.Add(Properties.Resources.羿龙);//13
-            icos.Images.Add(Properties.Resources.至强);//14
-            icos.Images.Add(Properties.Resources.logo);//15
-            icos.Images.Add(Properties.Resources.ico2);//16 intel
-            icos.Images.Add(Properties.Resources.fx);//17
-            icos.Images.Add(Properties.Resources.皓龙);//18
+            //var icos = new ImageList();
+            //icos.Images.Add(Properties.Resources.A10);//0
+            //icos.Images.Add(Properties.Resources.apu);//1
+            //icos.Images.Add(Properties.Resources.atom);//2
+            //icos.Images.Add(Properties.Resources.i3);//3
+            //icos.Images.Add(Properties.Resources.i5);//4
+            //icos.Images.Add(Properties.Resources.i7); //5
+            //icos.Images.Add(Properties.Resources.奔腾);//6
+            //icos.Images.Add(Properties.Resources.酷睿2);//7
+            //icos.Images.Add(Properties.Resources.酷睿2E);//8
+            //icos.Images.Add(Properties.Resources.酷睿2q);//9
+            //icos.Images.Add(Properties.Resources.赛扬1);//10
+            //icos.Images.Add(Properties.Resources.速龙);//11
+            //icos.Images.Add(Properties.Resources.土龙);//12
+            //icos.Images.Add(Properties.Resources.羿龙);//13
+            //icos.Images.Add(Properties.Resources.至强);//14
+            //icos.Images.Add(Properties.Resources.logo);//15
+            //icos.Images.Add(Properties.Resources.ico2);//16 intel
+            //icos.Images.Add(Properties.Resources.fx);//17
+            //icos.Images.Add(Properties.Resources.皓龙);//18
             var amd = new TreeNode("AMD",15,15);
             amd.Nodes.Add("A10","A10",0);
             amd.Nodes.Add("A8", "A8", 1);
