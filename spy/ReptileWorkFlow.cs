@@ -2,17 +2,7 @@ using System.Collections.Generic;
 
 namespace SepcReptile
 {
-    /*
-     * URL查询-获取网页-正则-选取URL-数据库(包含URL)
-     * URL可按照规则生成或在已获取页面里抓取
-     * URL和期望的查询结果都在同一个db
-     * 
-     * 爬虫基类：
-     * 1.确定数据列
-     * 2.填写正则
-     * 3.存入datatable
-     */
-     
+
 
     /// <summary>
     /// 爬虫工作流（基于原生SQL）
@@ -44,6 +34,9 @@ namespace SepcReptile
         /// 起始行id
         /// </summary>
         public int Sn { get; set; }
+        /// <summary>
+        /// 执行成功URL行标志
+        /// </summary>
         public string Sign { get; set; }
     }
 }

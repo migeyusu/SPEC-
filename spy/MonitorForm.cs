@@ -593,7 +593,7 @@ namespace SepcReptile
 
         private void button4_Click(object sender, EventArgs e)
         {
-            var ar = new ARequest();
+            var ar = new HttpRequest();
 
             var sw = new StreamWriter(Application.StartupPath + "\\a.txt");
             sw.Write(ar.GetHtml("http://www.spec.org/cpu2006/results/res2014q4/cpu2006-20141216-33623.html"));

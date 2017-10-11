@@ -7,6 +7,16 @@ using System.Xml;
 
 namespace SepcReptile
 {
+    /* 简单的多线程爬虫实现，纯数据库存取
+     * URL查询-获取网页-正则-选取URL-数据库(包含URL)
+     * URL可按照规则生成或在已获取页面里抓取
+     * URL和期望的查询结果都在同一个db
+     * 
+     * 爬虫基类：
+     * 1.确定数据列
+     * 2.填写正则
+     * 3.存入datatable
+     */
 
 
     /// <summary>
@@ -20,36 +30,39 @@ namespace SepcReptile
     public abstract class Reptile
     {
         protected readonly ManualResetEvent SuspendEvent;
-        protected SqlWorkUnit Database;
-        public bool Work { get; set; }
+        protected SqlWorkUnit WorkUnit;
+        public bool Working { get; set; }
         public bool Suspending { get; set; }
         protected object UrlLocker, SaveLocker, CountLocker;
         protected DataTable Url { get; set; }
-        protected int UrlHand, NetSpeed;
+        protected int UrlHand, DownloadSpeed;
+
         /// <summary>
         /// 子类需要初始化datatable的列定义
         /// </summary>
         protected DataTable CommonStructureTable { get; set; }
+
         protected int PreRowsCount { get; set; }
-        public int MaxRowsCount { get; set; }   
-        protected int MaxTdCount,leaveThread,Interval;//连接超时
-        public int CurrentTdCount { get; set; }     
+        public int MaxRowsCount { get; set; }
+        protected int MaxTdCount, leaveThread, Interval; //连接超时
+        public int CurrentTdCount { get; set; }
         public event Action WorkFlowCompleted, ProcessStopped, WorkFlowEnded;
         public event Action<string> OnUrlError;
+
         /// <summary>
         /// 下载速度，当前行序号，总行数      
         /// </summary>  
         public Action<int, int, int> SpeedReported;
+
         protected XmlDocument ConfigurationDoc;
         protected string ConfigPath;
         protected abstract DataRow[] Deal(string htmlPage);
         protected Queue<ReptileWorkFlow> WorkFlows;
         protected ReptileWorkFlow PreWorkFlow;
-        public int LeaveThread
-        {
+
+        public int LeaveThread {
             get => leaveThread;
-            set
-            {
+            set {
                 leaveThread = value;
                 if (value == MaxTdCount)
                     Reptile_OnDealEnd();
@@ -67,7 +80,7 @@ namespace SepcReptile
             WorkFlows = new Queue<ReptileWorkFlow>();
             SuspendEvent = new ManualResetEvent(false);
             UrlHand = 0;
-            Work = false;
+            Working = false;
             Interval = 1800;
             PreRowsCount = 0;
             MaxRowsCount = 500;
@@ -76,47 +89,40 @@ namespace SepcReptile
         private void Reptile_OnDealEnd()
         {
             //更新url表
-            Database.Update(Url);
+            WorkUnit.Update(Url);
             //储存未写入数据
             if (CommonStructureTable.Rows.Count > 0)
-            {
-                Database.Save(CommonStructureTable, PreWorkFlow.ValTable, PreWorkFlow.ValColumns);
-            }
+                WorkUnit.Save(CommonStructureTable, PreWorkFlow.ValTable, PreWorkFlow.ValColumns);
             //reflash config
-            var xnl = ConfigurationDoc.GetElementsByTagName("workflow");
+            var xmlNodeList = ConfigurationDoc.GetElementsByTagName("workflow");
             //工作流更新
-            if (Work)
-            {
+            if (Working) {
                 PreWorkFlow.Enable = false;
-                foreach (XmlNode xn in xnl)
-                {
-                    if (xn.Attributes["sn"].Value == PreWorkFlow.Sn.ToString())
-                    {
-                        xn.Attributes["enable"].Value = false.ToString();
+                foreach (XmlNode node in xmlNodeList) {
+                    if (node.Attributes["sn"].Value == PreWorkFlow.Sn.ToString()) {
+                        node.Attributes["enable"].Value = false.ToString();
                         ConfigurationDoc.Save(ConfigPath);
                         break;
                     }
                 }
-                Work = false;
-                if (WorkFlows.Count > 0)//切换工作流
+                Working = false;
+                if (WorkFlows.Count > 0) //切换工作流
                 {
                     WorkFlowEnded?.Invoke();
                     StartWorkFolow();
                 }
-                else
-                {
+                else {
                     WorkFlowCompleted?.Invoke();
                 }
             }
-            else
-            {
+            else {
                 ProcessStopped?.Invoke();
             }
         }
 
         public virtual void Start(int max)
         {
-            if (Work)
+            if (Working)
                 return;
             MaxTdCount = max;
             StartWorkFolow();
@@ -146,41 +152,39 @@ namespace SepcReptile
             ConfigurationDoc = xd;
             var root = xd.DocumentElement;
             var datapath = root.Attributes["database"].Value;
-            Database = new SqlWorkUnit(datapath, @".\SQLEXPRESS");
+            WorkUnit = new SqlWorkUnit(datapath, @".\SQLEXPRESS");
             var xnl = root.GetElementsByTagName("workflow");
-            foreach (XmlElement x in xnl)
-            {
-                var wf = new ReptileWorkFlow() { Enable = bool.Parse(x.Attributes["enable"].Value), Sn = int.Parse(x.Attributes["sn"].Value) };
-                var xn = x.GetElementsByTagName("URL")[0];
-                wf.UrlColumn = xn.Attributes["column"].Value;
-                wf.UrlSql = xn.Attributes["fromsql"].Value;
-                wf.Sign = xn.Attributes["sign"].Value;
-                var valuele = (XmlElement)x.GetElementsByTagName("Value")[0];
-                wf.ValTable = valuele.Attributes["table"].Value;
-                var columns = valuele.GetElementsByTagName("column");
-                wf.ValColumns = new List<string>();
-                foreach (XmlNode column in columns)
-                {
-                    wf.ValColumns.Add(column.InnerText);
+            foreach (XmlElement x in xnl) {
+                var workFlow = new ReptileWorkFlow() {
+                    Enable = bool.Parse(x.Attributes["enable"].Value),
+                    Sn = int.Parse(x.Attributes["sn"].Value)
+                };
+                var urlNode = x.GetElementsByTagName("URL")[0];
+                workFlow.UrlColumn = urlNode.Attributes["column"].Value;
+                workFlow.UrlSql = urlNode.Attributes["fromsql"].Value;
+                workFlow.Sign = urlNode.Attributes["sign"].Value;
+                var element = (XmlElement) x.GetElementsByTagName("Value")[0];
+                workFlow.ValTable = element.Attributes["table"].Value;
+                var columns = element.GetElementsByTagName("column");
+                workFlow.ValColumns = new List<string>();
+                foreach (XmlNode column in columns) {
+                    workFlow.ValColumns.Add(column.InnerText);
                 }
-                WorkFlows.Enqueue(wf);
+                WorkFlows.Enqueue(workFlow);
             }
-            while (WorkFlows.Count > 0)
-            {
+            while (WorkFlows.Count > 0) {
                 PreWorkFlow = WorkFlows.Dequeue();
                 if (PreWorkFlow.Enable)
                     return;
             }
-            throw new InvalidExpressionException("未有可用的工作流");
+            throw new InvalidExpressionException("无可用工作流");
         }
 
         protected virtual void StartWorkFolow()
         {
-            if (!PreWorkFlow.Enable)
-            {
+            if (!PreWorkFlow.Enable) {
                 PreWorkFlow = null;
-                while (WorkFlows.Count > 0)
-                {
+                while (WorkFlows.Count > 0) {
                     PreWorkFlow = WorkFlows.Dequeue();
                     if (PreWorkFlow.Enable)
                         break;
@@ -190,7 +194,7 @@ namespace SepcReptile
                     return;
                 }
             }
-            Url = Database.ExuSqlDataTable(PreWorkFlow.UrlSql);
+            Url = WorkUnit.ExuSqlDataTable(PreWorkFlow.UrlSql);
             UrlHand = 0;
             TableIni();
             ReptileStart();
@@ -198,7 +202,7 @@ namespace SepcReptile
 
         protected void ReptileStart()
         {
-            Work = true;
+            Working = true;
             CurrentTdCount = 0;
             leaveThread = MaxTdCount;
             Task.Run(() => Monitor());
@@ -210,49 +214,40 @@ namespace SepcReptile
         protected void Monitor()
         {
             var pre = 0;
-            while(Work)
-            {
+            while (Working) {
                 Thread.Sleep(1000);
-                NetSpeed -= pre;
-                pre = NetSpeed;
+                DownloadSpeed -= pre;
+                pre = DownloadSpeed;
 
                 int urlhand;
                 int urlcount;
-                lock(UrlLocker)
-                {
+                lock (UrlLocker) {
                     urlhand = UrlHand;
                     urlcount = Url.Rows.Count;
                 }
-                SpeedReported?.Invoke(NetSpeed, urlhand, urlcount);
+                SpeedReported?.Invoke(DownloadSpeed, urlhand, urlcount);
             }
         }
 
         protected void MainThread()
         {
-            var ar = new ARequest();
+            var request = new HttpRequest();
             string url;
             var prehand = 0;
-            lock (CountLocker)
-            {
+            lock (CountLocker) {
                 CurrentTdCount += 1;
                 LeaveThread -= 1;
             }
-            while (Work)
-            {
+            while (Working) {
                 if (Suspending)
-                {
                     SuspendEvent.WaitOne();
-                }
-                lock (UrlLocker)
-                {
-                    if (UrlHand < Url.Rows.Count)
-                    {
+                lock (UrlLocker) {
+                    if (UrlHand < Url.Rows.Count) {
                         prehand = UrlHand;
                         url = Url.Rows[UrlHand][PreWorkFlow.UrlColumn].ToString();
                         UrlHand += 1;
                     }
-                    else
-                    {
+                    else {
                         url = null;
                     }
                 }
@@ -260,51 +255,43 @@ namespace SepcReptile
                     break;
                 var times = 0;
                 var page = "";
-                while (times <= 5)
-                {
-                    page = ar.GetHtml(url);
+                while (times <= 5) {
+                    page = request.GetHtml(url);
                     times += 1;
                     if (page != null)
                         break;
                 }
-                if (page == null && OnUrlError != null)
-                {
-                    OnUrlError("获取时间过长" + "ERRORURL:" + url);
+                if (page == null && OnUrlError != null) {
+                    OnUrlError($"Error：获取时间过长,URL:{url}");
                     continue;
                 }
-                NetSpeed += ar.ReceiveLength / 1024;
+                DownloadSpeed += request.ReceiveLength / 1024;
                 var drs = Deal(page);
-                lock (UrlLocker)
-                {
+                lock (UrlLocker) {
                     //表示读取成功
                     Url.Rows[prehand][PreWorkFlow.Sign] = 1;
                 }
-                lock (SaveLocker)
-                {
-                    foreach (var dr in drs)
-                    {
+                lock (SaveLocker) {
+                    foreach (var dr in drs) {
                         CommonStructureTable.Rows.Add(dr);
                     }
-                    if (CommonStructureTable.Rows.Count > MaxRowsCount)
-                    {
+                    if (CommonStructureTable.Rows.Count > MaxRowsCount) {
                         //由于稳定运行时数据库出错几率极小，不予考虑
-                        Database.Save(CommonStructureTable, PreWorkFlow.ValTable, PreWorkFlow.ValColumns);
+                        WorkUnit.Save(CommonStructureTable, PreWorkFlow.ValTable, PreWorkFlow.ValColumns);
                         CommonStructureTable.Rows.Clear();
                     }
                 }
             }
-            lock (CountLocker)
-            {
+            lock (CountLocker) {
                 CurrentTdCount -= 1;
-                LeaveThread += 1;   //线程标记回收
+                LeaveThread += 1; //线程标记回收
             }
         }
 
         protected void PageDownloadEnd()
         {
-            Work = false;
+            Working = false;
         }
-
     }
 
 }

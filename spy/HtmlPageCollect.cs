@@ -14,7 +14,7 @@ namespace SepcReptile
     internal class HtmlPageCollect
     {
         private bool _working;
-        private bool _waiting = false;//抓取线程是否处于等待
+        private bool _waiting;//抓取线程是否处于等待
         private Queue<string> _urlSource=new Queue<string>();
         private readonly Queue<string> _resultHtml = new Queue<string>();
         private readonly object _sourcelocker = new object();

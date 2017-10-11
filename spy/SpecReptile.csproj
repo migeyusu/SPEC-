@@ -60,8 +60,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ARequest.cs" />
-    <Compile Include="DAL.cs" />
+    <Compile Include="HttpRequest.cs" />
+    <Compile Include="SqlWorkUnit.cs" />
     <Compile Include="MonitorForm.cs">
       <SubType>Form</SubType>
     </Compile>
