@@ -6,21 +6,20 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace SepcReptile
 {
-    public class ARequest
+    public class HttpRequest
     {
         private readonly Dictionary<string, IPAddress> _dnsCache;
         private const int IpPort = 80;
         private readonly int _buffersize = 16384;
-        public bool Read;
         public int WaitTime { get; set; }
 
-        public ARequest()
+        public HttpRequest()
         {
             WaitTime = 3400;
-            Read = true;
             _dnsCache = new Dictionary<string, IPAddress>();
         }
 
@@ -43,7 +42,11 @@ namespace SepcReptile
             return head.ToString();
         }
 
-        //同步方法
+        /// <summary>
+        /// 同步
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
         public string GetHtml(string url)
         {
             if (url.Contains("https://")) {
@@ -58,44 +61,42 @@ namespace SepcReptile
             string page = null;
             var ms = new MemoryStream();
             var position = url.IndexOf('/') + 1;
-            var tc = new TcpClient();
+            var client = new TcpClient();
             var host = url.Substring(0, position - 1);
             var acomplished = false;
-            NetworkStream ns = null;
-            var td = new Thread(() => {
+            NetworkStream stream = null;
+            var read = true;
+            Task.Run(() => {
                 try {
-                    var ipa = _dnsCache.Keys.Contains(host) ? _dnsCache[host] : Dns.GetHostAddresses(host)[0];
-                    tc.Connect(new IPEndPoint(ipa, IpPort));
-                    ns = tc.GetStream();
+                    var ipAddress = _dnsCache.Keys.Contains(host) ? _dnsCache[host] : Dns.GetHostAddresses(host)[0];
+                    client.Connect(new IPEndPoint(ipAddress, IpPort));
+                    stream = client.GetStream();
                     var buffer = new byte[_buffersize];
                     var head = Encoding.UTF8.GetBytes(Request(url, host));
-                    ns.Write(head, 0, head.Length);
-                    Read = true;
-                    while (Read) {
-                        position = ns.Read(buffer, 0, buffer.Length);
+                    stream.Write(head, 0, head.Length);
+                    while (read) {
+                        position = stream.Read(buffer, 0, buffer.Length);
                         ms.Write(buffer, 0, position);
                         if (Encoding.UTF8.GetString(ms.ToArray()).Contains("</html>")) {
-                            Read = false;
+                            read = false;
                         }
                     }
                     page = Encoding.UTF8.GetString(ms.ToArray());
                     ReceiveLength = ms.ToArray().Length;
-                    ns.Close();
-                    tc.Close();
+                    stream.Close();
+                    client.Close();
                     if (!page.Contains("</html>")) {
                         page = null;
                     }
                     acomplished = true;
                 }
                 catch (Exception) {
-                    Read = false;
+                    read = false;
                     acomplished = true;
                     page = null;
                 }
 
             });
-            td.IsBackground = true;
-            td.Start();
             var i = 0;
             while (i < 3000) {
                 Thread.Sleep(300);
@@ -104,10 +105,9 @@ namespace SepcReptile
                     break;
                 }
             }
-            if (Read) {
-                ns?.Close();
-                tc.Close();
-            }
+            if (!read) return page;
+            stream?.Close();
+            client.Close();
             return page;
         }
 

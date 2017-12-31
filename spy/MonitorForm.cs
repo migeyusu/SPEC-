@@ -7,9 +7,9 @@ using System.Windows.Forms;
 
 namespace SepcReptile
 {
-    public partial class Form1 : Form
+    public partial class MonitorForm : Form
     {
-        public Form1()
+        public MonitorForm()
         {
         
             InitializeComponent();
@@ -22,7 +22,7 @@ namespace SepcReptile
         {
             var tl = new TextLog(Application.StartupPath+"direct.txt");
           
-            _sr.OnWorkComplete += sr_OnWorkEnd;
+            _sr.WorkFlowCompleted += sr_OnWorkEnd;
             _sr.OnUrlError += (s) =>
             {
                 this.Invoke(new MethodInvoker(() =>
@@ -31,9 +31,9 @@ namespace SepcReptile
                     tl.Write(s);
                 }));
             };
-            _sr.OnWorkComplete += sr_OnWorkComplete;
-            _sr.OnStop += sr_OnStop;
-            _sr.OnStateMonitor = (a, b, c) =>
+            _sr.WorkFlowCompleted += sr_OnWorkComplete;
+            _sr.ProcessStopped += sr_OnStop;
+            _sr.SpeedReported = (a, b, c) =>
             {
                 this.Invoke(new MethodInvoker(() =>
                 {
@@ -593,7 +593,7 @@ namespace SepcReptile
 
         private void button4_Click(object sender, EventArgs e)
         {
-            var ar = new ARequest();
+            var ar = new HttpRequest();
 
             var sw = new StreamWriter(Application.StartupPath + "\\a.txt");
             sw.Write(ar.GetHtml("http://www.spec.org/cpu2006/results/res2014q4/cpu2006-20141216-33623.html"));
