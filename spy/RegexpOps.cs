@@ -3,7 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace SepcReptile
+namespace Reptile.Spec
 {
     internal class RegexpOperation
     {

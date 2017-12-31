@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace SepcReptile
+namespace Reptile.Spec
 {
     /* 简单的多线程爬虫实现，纯数据库存取
      * URL查询-获取网页-正则-选取URL-数据库(包含URL)

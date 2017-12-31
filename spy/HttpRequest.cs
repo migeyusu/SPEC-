@@ -8,13 +8,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SepcReptile
+namespace Reptile.Spec
 {
     public class HttpRequest
     {
         private readonly Dictionary<string, IPAddress> _dnsCache;
         private const int IpPort = 80;
-        private readonly int _buffersize = 16384;
+        private const int BufferSize = 16384;
         public int WaitTime { get; set; }
 
         public HttpRequest()
@@ -63,7 +63,7 @@ namespace SepcReptile
             var position = url.IndexOf('/') + 1;
             var client = new TcpClient();
             var host = url.Substring(0, position - 1);
-            var acomplished = false;
+            var accomplished = false;
             NetworkStream stream = null;
             var read = true;
             Task.Run(() => {
@@ -71,7 +71,7 @@ namespace SepcReptile
                     var ipAddress = _dnsCache.Keys.Contains(host) ? _dnsCache[host] : Dns.GetHostAddresses(host)[0];
                     client.Connect(new IPEndPoint(ipAddress, IpPort));
                     stream = client.GetStream();
-                    var buffer = new byte[_buffersize];
+                    var buffer = new byte[BufferSize];
                     var head = Encoding.UTF8.GetBytes(Request(url, host));
                     stream.Write(head, 0, head.Length);
                     while (read) {
@@ -88,11 +88,11 @@ namespace SepcReptile
                     if (!page.Contains("</html>")) {
                         page = null;
                     }
-                    acomplished = true;
+                    accomplished = true;
                 }
                 catch (Exception) {
                     read = false;
-                    acomplished = true;
+                    accomplished = true;
                     page = null;
                 }
 
@@ -101,7 +101,7 @@ namespace SepcReptile
             while (i < 3000) {
                 Thread.Sleep(300);
                 i += 300;
-                if (acomplished) {
+                if (accomplished) {
                     break;
                 }
             }

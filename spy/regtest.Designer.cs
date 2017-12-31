@@ -1,4 +1,4 @@
-﻿namespace SepcReptile
+﻿namespace Reptile.Spec
 {
     partial class Regtest
     {

@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 
-namespace SepcReptile
+namespace Reptile.Spec
 {
-
-
     /// <summary>
     /// 爬虫工作流（基于原生SQL）
     /// </summary>

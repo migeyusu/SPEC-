@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace SepcReptile
+namespace Reptile.Spec
 {
     internal static class Program
     {
@@ -13,7 +13,7 @@ namespace SepcReptile
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            var fm = new Form1();
+            var fm = new MonitorForm();
             Application.Run(fm);
         }
     }

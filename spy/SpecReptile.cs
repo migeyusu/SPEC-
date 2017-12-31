@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Text.RegularExpressions;
 
-namespace SepcReptile
+namespace Reptile.Spec
 {
     public class SpecReptile : Reptile
     {

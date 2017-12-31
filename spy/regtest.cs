@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace SepcReptile
+namespace Reptile.Spec
 {
     public partial class Regtest : Form
     {
