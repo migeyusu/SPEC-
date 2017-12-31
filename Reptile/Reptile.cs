@@ -44,7 +44,9 @@ namespace Reptile.Spec
 
         protected int PreRowsCount { get; set; }
         public int MaxRowsCount { get; set; }
-        protected int MaxTdCount, leaveThread, Interval; //连接超时
+        protected int MaxThreadCount; //连接超时
+        private int _leaveThread; //连接超时
+        protected int Interval; //连接超时
         public int CurrentTdCount { get; set; }
         public event Action WorkFlowCompleted, ProcessStopped, WorkFlowEnded;
         public event Action<string> OnUrlError;
@@ -61,10 +63,10 @@ namespace Reptile.Spec
         protected ReptileWorkFlow PreWorkFlow;
 
         public int LeaveThread {
-            get => leaveThread;
+            get => _leaveThread;
             set {
-                leaveThread = value;
-                if (value == MaxTdCount)
+                _leaveThread = value;
+                if (value == MaxThreadCount)
                     Reptile_OnDealEnd();
             }
         }
@@ -124,7 +126,7 @@ namespace Reptile.Spec
         {
             if (Working)
                 return;
-            MaxTdCount = max;
+            MaxThreadCount = max;
             StartWorkFolow();
         }
 
@@ -204,9 +206,9 @@ namespace Reptile.Spec
         {
             Working = true;
             CurrentTdCount = 0;
-            leaveThread = MaxTdCount;
+            _leaveThread = MaxThreadCount;
             Task.Run(() => Monitor());
-            for (var i = 0; i < MaxTdCount; ++i) {
+            for (var i = 0; i < MaxThreadCount; ++i) {
                 Task.Run(() => MainThread());
             }
         }
