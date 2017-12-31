@@ -13,9 +13,8 @@ namespace SepcReptile
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            var fm = new Form3();
+            var fm = new Form1();
             Application.Run(fm);
-            fm.Database.Clear();
         }
     }
 }

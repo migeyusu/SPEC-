@@ -39,7 +39,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(115, 226);
+            this.button1.Location = new System.Drawing.Point(197, 226);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
@@ -97,7 +97,7 @@
             this.textBox3.Size = new System.Drawing.Size(260, 64);
             this.textBox3.TabIndex = 6;
             // 
-            // regtest
+            // Regtest
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
