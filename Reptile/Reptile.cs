@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Reptile.Spec
+namespace Reptile
 {
     /* 简单的多线程爬虫实现，纯数据库存取
      * URL查询-获取网页-正则-选取URL-数据库(包含URL)
@@ -19,14 +19,15 @@ namespace Reptile.Spec
      */
 
 
-    /// <summary>
+    /*
     /// 为了简化模型，下载和处理在同一个线程中完成
     /// 9.12：数据库要求提供原始url和未完成的功能
     ///     新增状态变化日志，实时提供状态
     ///     url下载后储存，以guid作为文件名，储存在url库
     ///     数据库写和网络读分离以提高性能
     ///     每次解析返回更细粒度的datarow，待数量一定后一次写入
-    /// </summary>
+    */
+
     public abstract class Reptile
     {
         protected readonly ManualResetEvent SuspendEvent;
@@ -47,7 +48,7 @@ namespace Reptile.Spec
         protected int MaxThreadCount; //连接超时
         private int _leaveThread; //连接超时
         protected int Interval; //连接超时
-        public int CurrentTdCount { get; set; }
+        public int CurrentThreadCount { get; set; }
         public event Action WorkFlowCompleted, ProcessStopped, WorkFlowEnded;
         public event Action<string> OnUrlError;
 
@@ -111,7 +112,7 @@ namespace Reptile.Spec
                 if (WorkFlows.Count > 0) //切换工作流
                 {
                     WorkFlowEnded?.Invoke();
-                    StartWorkFolow();
+                    StartWorkFlow();
                 }
                 else {
                     WorkFlowCompleted?.Invoke();
@@ -127,7 +128,7 @@ namespace Reptile.Spec
             if (Working)
                 return;
             MaxThreadCount = max;
-            StartWorkFolow();
+            StartWorkFlow();
         }
 
         public virtual void End()
@@ -182,7 +183,7 @@ namespace Reptile.Spec
             throw new InvalidExpressionException("无可用工作流");
         }
 
-        protected virtual void StartWorkFolow()
+        protected virtual void StartWorkFlow()
         {
             if (!PreWorkFlow.Enable) {
                 PreWorkFlow = null;
@@ -205,7 +206,7 @@ namespace Reptile.Spec
         protected void ReptileStart()
         {
             Working = true;
-            CurrentTdCount = 0;
+            CurrentThreadCount = 0;
             _leaveThread = MaxThreadCount;
             Task.Run(() => Monitor());
             for (var i = 0; i < MaxThreadCount; ++i) {
@@ -237,7 +238,7 @@ namespace Reptile.Spec
             string url;
             var prehand = 0;
             lock (CountLocker) {
-                CurrentTdCount += 1;
+                CurrentThreadCount += 1;
                 LeaveThread -= 1;
             }
             while (Working) {
@@ -285,7 +286,7 @@ namespace Reptile.Spec
                 }
             }
             lock (CountLocker) {
-                CurrentTdCount -= 1;
+                CurrentThreadCount -= 1;
                 LeaveThread += 1; //线程标记回收
             }
         }

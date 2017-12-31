@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Reptile.Spec
+namespace Reptile
 {
     public class TextLog
     {

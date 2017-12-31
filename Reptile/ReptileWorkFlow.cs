@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Reptile.Spec
+namespace Reptile
 {
     /// <summary>
     /// 爬虫工作流（基于原生SQL）

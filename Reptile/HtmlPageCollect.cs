@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Reptile.Spec
+namespace Reptile
 {
     /// <summary>
     /// 线程安全

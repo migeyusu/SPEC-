@@ -612,7 +612,7 @@ namespace Reptile.Spec
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            label2.Text = _sr.CurrentTdCount.ToString();
+            label2.Text = _sr.CurrentThreadCount.ToString();
             label3.Text = _sr.LeaveThread.ToString();
         }
 

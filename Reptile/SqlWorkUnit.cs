@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 
-namespace Reptile.Spec
+namespace Reptile
 {
     //Data Source=.\SQLEXPRESS;AttachDbFilename=C:\工程\TMS\TMS\bin\Release\DataBase\teachmanage.mdf;Integrated Security=True;User ID=admin;Connect Timeout=30;User Instance=True
     public class SqlWorkUnit
